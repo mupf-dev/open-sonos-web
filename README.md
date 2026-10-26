@@ -7,7 +7,7 @@ It controls your speakers directly on the local network via UPnP (using the [SoC
 
 ![Now playing](docs/screenshots/now-light.jpg)
 
-> **Note:** The user interface is currently in German.
+The interface is available in **English** and **German** and follows your browser language – adding another language is a single JSON file, see [Translating](#languages).
 
 ## Features
 
@@ -16,7 +16,7 @@ It controls your speakers directly on the local network via UPnP (using the [SoC
 | **Now playing** | Cover art, title, seekable progress, play/pause, next/previous, shuffle, repeat (all/one), crossfade, sleep timer, switch to TV or line-in, group and per-room volume, mute |
 | **Stage view** | Alternative now-playing view: large cover, background tinted with the album's colors, controls fade away, full screen; time-synced lyrics (LRCLIB), artist info (Wikipedia), up next, and a muted music video synced to playback – blurred in the background or up front |
 | **Queue** | View, jump to a track, remove, reorder via drag & drop, clear, save as a Sonos playlist |
-| **Music services** | Browse Spotify and other services (home page with reorderable rows, search, your library) – link once under *Räume › Musikdienste* |
+| **Music services** | Browse Spotify and other services (home page with reorderable rows, search, your library) – link once under *Rooms › Music services* |
 | **Favorites** | Play or enqueue Sonos favorites (radio, Spotify playlists, …); service folders open in the browser |
 | **Playlists** | Open, play, enqueue, rename and delete Sonos playlists, add tracks; cover mosaics (missing covers are looked up via a linked service) |
 | **Library** | Browse the local music library (NAS/shares) by artist, album, track, genre, composer, imported playlists and folders; search; re-index |
@@ -66,6 +66,12 @@ The `windows/` folder contains PowerShell scripts that apply and revert this set
 
 To use the interface from a phone or tablet, run the server on a device on your home network (e.g. via Docker).
 
+## Languages
+
+English (primary) and German are included. The interface uses your browser language when available, otherwise English; you can switch under *Rooms › Language* (stored per device).
+
+To add a language, copy `static/i18n/en.json` to `static/i18n/<code>.json`, set `_meta.name` and translate the values – it is picked up automatically, no code changes needed. See [TRANSLATING.md](TRANSLATING.md) for placeholders, plurals and how to find missing keys.
+
 ## Project layout
 
 ```
@@ -75,6 +81,7 @@ app/music_services.py  music services (Spotify & co.) via the Sonos SMAPI
 app/media_info.py      lyrics, artist info and music videos
 app/demo_service.py    simulated system for demo mode
 static/                user interface (HTML/CSS/JS, no build step)
+static/i18n/           translations, one JSON file per language
 docs/                  GitHub Pages website
 data/                  local settings, service tokens and cover cache (created automatically, not in git)
 ```

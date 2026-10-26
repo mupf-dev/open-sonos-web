@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
 from pathlib import Path
@@ -15,7 +16,8 @@ from soco.exceptions import SoCoException, SoCoUPnPException
 
 from . import media_info
 from .demo_service import DemoService
-from .sonos_service import NotConnected, SonosService
+from .errors import AppError, payload
+from .sonos_service import SonosService
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 STATIC = Path(__file__).resolve().parent.parent / "static"
@@ -26,18 +28,20 @@ app = FastAPI(title="Sonos Web", docs_url="/api/docs", openapi_url="/api/openapi
 
 @app.exception_handler(Exception)
 async def errors(_: Request, exc: Exception):
-    if isinstance(exc, NotConnected):
-        return JSONResponse({"error": str(exc)}, status_code=503)
+    if isinstance(exc, AppError):
+        return JSONResponse(payload(exc.code, exc.params), status_code=exc.status)
+    if isinstance(exc, HTTPException) and isinstance(exc.detail, str) and " " not in exc.detail:
+        return JSONResponse(payload(exc.detail), status_code=exc.status_code)
     if isinstance(exc, KeyError):
-        return JSONResponse({"error": str(exc.args[0]) if exc.args else "Nicht gefunden"}, status_code=404)
+        return JSONResponse(payload("item_not_found"), status_code=404)
     if isinstance(exc, SoCoUPnPException):
-        return JSONResponse({"error": f"Sonos lehnt die Aktion ab ({exc.error_code})"}, status_code=400)
+        return JSONResponse(payload("rejected", {"code": exc.error_code}), status_code=400)
     if isinstance(exc, (ValueError, SoCoException)):
         return JSONResponse({"error": str(exc)}, status_code=400)
     if isinstance(exc, requests.RequestException):
-        return JSONResponse({"error": "Lautsprecher nicht erreichbar"}, status_code=503)
+        return JSONResponse(payload("speaker_unreachable"), status_code=503)
     logging.getLogger("sonos").exception("Unerwarteter Fehler")
-    return JSONResponse({"error": "Interner Fehler"}, status_code=500)
+    return JSONResponse(payload("internal"), status_code=500)
 
 
 def call(fn, *args, **kwargs):
@@ -86,6 +90,19 @@ async def artist(name: str):
     return await call(media_info.artist_info, name) or {}
 
 
+@app.get("/api/i18n")
+async def languages():
+    """Verfügbare Sprachen = alle Dateien in static/i18n/ (neue Sprache: Datei ablegen, fertig)."""
+    out = []
+    for f in sorted((STATIC / "i18n").glob("*.json")):
+        try:
+            meta = json.loads(f.read_text(encoding="utf-8")).get("_meta", {})
+        except ValueError:
+            continue
+        out.append({"code": f.stem, "name": meta.get("name", f.stem)})
+    return sorted(out, key=lambda x: (x["code"] != "en", x["name"].lower()))
+
+
 @app.get("/api/prefs")
 async def prefs():
     return await call(svc.prefs)
@@ -114,7 +131,7 @@ async def speakers():
 @app.get("/api/art")
 async def art(u: str):
     if not svc.is_speaker_url(u):
-        raise HTTPException(400, "Nur Bilder vom Lautsprecher erlaubt")
+        raise AppError("art_forbidden")
     r = await call(requests.get, u, timeout=5)
     return Response(r.content, media_type=r.headers.get("content-type", "image/jpeg"),
                     headers={"Cache-Control": "public, max-age=86400"})
@@ -151,7 +168,7 @@ async def transport(uid: str, action: str, body: dict = Body(default_factory=dic
         return await ok(svc.play_item, uid, body["id"], body.get("mode", "replace"), body.get("title", ""))
     if action == "queue":
         return await ok(svc.queue_action, uid, body["action"], body.get("index"), body.get("to"), body.get("title"))
-    raise HTTPException(404, "Unbekannte Aktion")
+    raise AppError("unknown_action", 404)
 
 
 @app.post("/api/ungroup-all")

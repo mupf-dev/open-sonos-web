@@ -18,6 +18,8 @@ from pathlib import Path
 from urllib.parse import quote, unquote
 
 from soco import SoCo
+
+from .errors import AppError
 from soco.music_services import MusicService
 from soco.music_services.music_service import parse_response
 from soco.music_services.token_store import JsonFileTokenStore
@@ -88,9 +90,9 @@ class ServiceHub:
     def service(self, sid: str, dev: SoCo) -> MusicService:
         info = self.catalog().get(sid)
         if not info:
-            raise KeyError("Musikdienst unbekannt")
+            raise AppError("service_unknown", 404)
         if not self.is_linked(sid, dev.household_id):
-            raise ValueError(f"{info['name']} ist noch nicht verbunden – unter Räume › Musikdienste verbinden")
+            raise AppError("service_not_linked", name=info["name"])
         with self._lock:
             if sid not in self._services:
                 self._services[sid] = MusicService(info["name"], token_store=self._store(), device=dev)
@@ -106,11 +108,11 @@ class ServiceHub:
     def link_complete(self, sid: str) -> None:
         ms = self._pending.get(sid)
         if ms is None:
-            raise ValueError("Bitte zuerst die Verknüpfung starten")
+            raise AppError("link_not_started")
         try:
             ms.complete_authentication()
         except Exception as exc:  # noqa: BLE001 - Dienst meldet „noch nicht bestätigt“ unterschiedlich
-            raise ValueError("Noch nicht bestätigt – bitte zuerst im Browser anmelden") from exc
+            raise AppError("link_not_confirmed") from exc
         self._pending.pop(sid, None)
         self._services.pop(sid, None)
         if self.token_path.exists():

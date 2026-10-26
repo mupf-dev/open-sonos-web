@@ -7,6 +7,8 @@ import itertools
 import random
 import time
 
+from .errors import AppError
+
 ARTISTS = {
     "Nordlicht": [("Polarnacht", ["Aurora", "Eiskristall", "Weiter Horizont", "Stille See"]),
                   ("Morgengrau", ["Erstes Licht", "Nebelbank", "Hafenstadt"])],
@@ -21,10 +23,10 @@ ARTISTS = {
 PALETTES = [("#ff6b6b", "#5f27cd"), ("#0abde3", "#10ac84"), ("#feca57", "#ff6b6b"), ("#48dbfb", "#341f97"),
             ("#ff9ff3", "#5f27cd"), ("#1dd1a1", "#222f3e"), ("#c8d6e5", "#576574"), ("#ee5253", "#0a3d62"),
             ("#f6e58d", "#6ab04c"), ("#7ed6df", "#e056fd"), ("#fab1a0", "#2d3436"), ("#55efc4", "#0984e3")]
-LYRICS = ["Die Stadt schläft noch, ich bin wach", "Lichter ziehen am Fenster vorbei", "Wir sind leiser als der Regen",
-          "Und doch hört man uns", "Halt die Zeit für einen Moment an", "Alles klingt nach Sommer",
-          "Ein Echo in den leeren Straßen", "Wir laufen weiter, Richtung Morgen", "Kein Plan, nur dieses Lied",
-          "Und der Bass trägt uns nach Haus", "Ooh, ooh", "Bleib noch ein bisschen hier"]
+LYRICS = ["The city's still asleep, but I'm awake", "Streetlights drifting past the window", "We're quieter than the rain",
+          "But still they hear us", "Hold the moment for a while", "Everything sounds like summer",
+          "An echo in the empty streets", "We keep on walking towards the morning", "No plan, just this song",
+          "And the bass carries us home", "Ooh, ooh", "Stay a little longer"]
 
 
 def _art(seed: str) -> str:
@@ -50,10 +52,10 @@ class DemoService:
                     self.tracks.append({"id": f"T:{len(self.tracks)}", "title": t, "artist": artist,
                                         "album": album, "duration": random.randint(150, 300)})
         self.speakers = {
-            "RINCON_WOHN": {"name": "Wohnzimmer", "model": "Sonos Arc", "volume": 28, "mute": False, "soundbar": True},
-            "RINCON_KUECHE": {"name": "Küche", "model": "Sonos Era 100", "volume": 22, "mute": False, "soundbar": False},
-            "RINCON_BAD": {"name": "Bad", "model": "Sonos One SL", "volume": 18, "mute": False, "soundbar": False},
-            "RINCON_BUERO": {"name": "Büro", "model": "Sonos Five", "volume": 30, "mute": False, "soundbar": False},
+            "RINCON_WOHN": {"name": "Living Room", "model": "Sonos Arc", "volume": 28, "mute": False, "soundbar": True},
+            "RINCON_KUECHE": {"name": "Kitchen", "model": "Sonos Era 100", "volume": 22, "mute": False, "soundbar": False},
+            "RINCON_BAD": {"name": "Bathroom", "model": "Sonos One SL", "volume": 18, "mute": False, "soundbar": False},
+            "RINCON_BUERO": {"name": "Office", "model": "Sonos Five", "volume": 30, "mute": False, "soundbar": False},
         }
         for uid, s in self.speakers.items():
             s.update(uid=uid, status_light=True, buttons_enabled=True,
@@ -70,21 +72,21 @@ class DemoService:
         self.players["RINCON_WOHN"].update(queue=self.tracks[16:31], index=0, state="PLAYING", pos=52, source="LIBRARY")
         self.players["RINCON_BUERO"].update(queue=self.tracks[7:12], state="PAUSED_PLAYBACK", pos=95, source="LIBRARY")
         self.favs = [
-            {"id": "FV:2/1", "title": "Radio Paradise", "subtitle": "Radiosender", "stream": True},
-            {"id": "FV:2/2", "title": "Deutschlandfunk", "subtitle": "Radiosender", "stream": True},
+            {"id": "FV:2/1", "title": "Morning FM", "subtitle": "Radio", "stream": True},
+            {"id": "FV:2/2", "title": "City Radio", "subtitle": "Radio", "stream": True},
             {"id": "FV:2/3", "title": "Polarnacht", "subtitle": "Nordlicht", "stream": False, "album": "Polarnacht"},
             {"id": "FV:2/4", "title": "Paper Walls", "subtitle": "The Quiet Rooms", "stream": False, "album": "Paper Walls"},
             {"id": "FV:2/5", "title": "Neon Hours", "subtitle": "Lumen Drive", "stream": False, "album": "Neon Hours"},
-            {"id": "FV:2/6", "title": "Jazz Lounge FM", "subtitle": "Radiosender", "stream": True},
+            {"id": "FV:2/6", "title": "Jazz Lounge FM", "subtitle": "Radio", "stream": True},
             {"id": "FV:2/7", "title": "Tidal", "subtitle": "Saltwater Choir", "stream": False, "album": "Tidal"},
             {"id": "FV:2/8", "title": "Slow Bloom", "subtitle": "Velvet Static", "stream": False, "album": "Slow Bloom"},
         ]
-        self.playlists_ = {"SQ:1": {"title": "Sonntagmorgen", "tracks": self.tracks[3:16:2]},
-                           "SQ:2": {"title": "Fokus", "tracks": self.tracks[12:]},
-                           "SQ:3": {"title": "Abendessen", "tracks": self.tracks[1::3]},
-                           "SQ:4": {"title": "Roadtrip", "tracks": self.tracks[::4]},
-                           "SQ:5": {"title": "Lieblingssongs", "tracks": self.tracks[2::5]},
-                           "SQ:6": {"title": "Ruhig", "tracks": self.tracks[20:]}}
+        self.playlists_ = {"SQ:1": {"title": "Sunday Morning", "tracks": self.tracks[3:16:2]},
+                           "SQ:2": {"title": "Focus", "tracks": self.tracks[12:]},
+                           "SQ:3": {"title": "Dinner", "tracks": self.tracks[1::3]},
+                           "SQ:4": {"title": "Road Trip", "tracks": self.tracks[::4]},
+                           "SQ:5": {"title": "Favourites", "tracks": self.tracks[2::5]},
+                           "SQ:6": {"title": "Calm", "tracks": self.tracks[20:]}}
         self.alarms_ = [{"id": "1", "uid": "RINCON_BAD", "time": "06:45", "duration": 60, "recurrence": "WEEKDAYS",
                          "enabled": True, "volume": 15, "play_mode": "NORMAL", "include_linked": False,
                          "program_id": "FV:2/2"}]
@@ -119,7 +121,7 @@ class DemoService:
     # ------------------------------------------------------------------ Hilfen
     def _coord(self, uid: str) -> str:
         if uid not in self.membership:
-            raise KeyError(f"Lautsprecher {uid} unbekannt")
+            raise AppError("speaker_unknown", 404)
         return self.membership[uid]
 
     def _members(self, coord: str) -> list[str]:
@@ -150,7 +152,7 @@ class DemoService:
             members = [{"uid": u, "name": self.speakers[u]["name"], "volume": self.speakers[u]["volume"],
                         "mute": self.speakers[u]["mute"], "fixed_volume": False} for u in self._members(coord)]
             if p["stream"]:
-                track = {"title": p["stream"], "artist": "Live-Radio", "album": "", "art": _art(p["stream"]),
+                track = {"title": p["stream"], "artist": "Live", "album": "", "art": _art(p["stream"]),
                          "position": int(time.time() - p["since"]), "duration": 0, "queue_position": 0}
             elif p["queue"]:
                 t = p["queue"][p["index"]]
@@ -161,7 +163,7 @@ class DemoService:
                          "queue_position": 0}
             groups.append({
                 "uid": coord, "coordinator": coord,
-                "name": " + ".join(m["name"] for m in members),
+                "name": " + ".join(m["name"] for m in sorted(members, key=lambda m: m["uid"] != coord)),
                 "state": p["state"], "track": track, "source": p["source"],
                 "shuffle": p["shuffle"], "repeat": p["repeat"], "crossfade": p["crossfade"],
                 "sleep": int(p["sleep_until"] - time.time()) if p["sleep_until"] else None,
@@ -326,12 +328,12 @@ class DemoService:
             return [t for t in self.tracks if t["artist"] == name]
         if item_id == "A:TRACKS":
             return list(self.tracks)
-        raise KeyError("Eintrag nicht gefunden")
+        raise AppError("item_not_found", 404)
 
     # ------------------------------------------------------------------ Demo-Musikdienst
-    SECTIONS = {"forYou": ("Für dich", "playlist"), "new": ("Neu erschienen", "album"),
-                "moods": ("Stimmungen", "playlist"), "yours": ("Deine Musik", "playlist")}
-    MOODS = ["Fokus", "Sonntagmorgen", "Laufen", "Abendessen", "Roadtrip", "Regentag", "Party", "Einschlafen"]
+    SECTIONS = {"forYou": ("Made for you", "playlist"), "new": ("New releases", "album"),
+                "moods": ("Moods", "playlist"), "yours": ("Your music", "playlist")}
+    MOODS = ["Focus", "Sunday Morning", "Running", "Dinner", "Road Trip", "Rainy Day", "Party", "Sleep"]
 
     def services(self, uid: str) -> list[dict]:
         return [{"sid": "demo", "name": "Streaming", "auth": "AppLink", "linked": True,
@@ -349,17 +351,17 @@ class DemoService:
                      "container": True, "playable": False, "art": None} for k, (t, _) in self.SECTIONS.items()]
         if kind == "section":
             if name == "forYou":
-                return [self._svc_item("playlist", n, "Für dich") for n in
-                        ("Mix der Woche", "Neu für dich", "Tagesmix 1", "Tagesmix 2", "Zeitkapsel", "Lieblingssongs", "Entdeckungen")]
+                return [self._svc_item("playlist", n, "Made for you") for n in
+                        ("Weekly Mix", "New for You", "Daily Mix 1", "Daily Mix 2", "Time Capsule", "Liked Songs", "Discoveries")]
             if name == "new":
                 return [self._svc_item("album", al, a) for a, albums in ARTISTS.items() for al, _ in albums]
             if name == "moods":
-                return [self._svc_item("playlist", n, "Stimmung") for n in self.MOODS]
-            return [self._svc_item("playlist", n, "Playlist") for n in ("Lieblingssongs", "Autofahrt", "Kochen", "Workout")]
+                return [self._svc_item("playlist", n, "Mood") for n in self.MOODS]
+            return [self._svc_item("playlist", n, "Playlist") for n in ("Liked Songs", "Car", "Cooking", "Workout")]
         return [self._track(t) for t in self._tracks_for(object_id)]
 
     def service_link(self, uid: str, sid: str, step: str) -> dict:
-        raise ValueError("Im Demo-Modus nicht verfügbar")
+        raise AppError("demo_unavailable")
 
     def play_item(self, uid: str, item_id: str, mode: str = "replace", title: str = "") -> None:
         p = self.players[self._coord(uid)]
@@ -408,7 +410,7 @@ class DemoService:
         out = []
         for k, v in self.playlists_.items():
             arts = list(dict.fromkeys(_art(t["album"]) for t in v["tracks"]))[:4]
-            out.append({"id": k, "title": v["title"], "subtitle": f"{len(v['tracks'])} Titel", "kind": "playlistContainer",
+            out.append({"id": k, "title": v["title"], "subtitle": "", "count": len(v["tracks"]), "kind": "playlistContainer",
                         "container": True, "playable": True, "art": arts[0] if arts else None, "arts": arts})
         return out
 
@@ -426,9 +428,9 @@ class DemoService:
         if name not in ARTISTS:
             return None
         albums = ", ".join(al for al, _ in ARTISTS[name])
-        return {"name": name, "description": "Fiktiver Act aus dem Demo-Modus", "image": _art(name + " artist"),
-                "extract": f"{name} gibt es nicht wirklich – der Act zeigt, wie die Bühnen-Ansicht Infos zum Interpreten "
-                           f"darstellt. Im echten Betrieb kommen Bild und Text von Wikipedia. Alben: {albums}.",
+        return {"name": name, "description": "Fictional act from demo mode", "image": _art(name + " artist"),
+                "extract": f"{name} doesn't really exist – this act shows how the stage view presents artist info. "
+                           f"With real speakers, photo and text come from Wikipedia. Albums: {albums}.",
                 "url": None, "source": "Demo"}
 
     def delete_playlist(self, uid, playlist_id) -> None:
@@ -464,7 +466,7 @@ class DemoService:
             elif k in s["eq"]:
                 s["eq"][k] = v if isinstance(v, bool) else int(v)
             else:
-                raise ValueError(f"Unbekannte Einstellung: {k}")
+                raise AppError("unknown_setting", key=k)
 
     # ------------------------------------------------------------------ Wecker
     def alarms(self) -> list[dict]:
@@ -472,7 +474,7 @@ class DemoService:
         for a in self.alarms_:
             fav = next((f for f in self.favs if f["id"] == a["program_id"]), None)
             out.append(a | {"room": self.speakers[a["uid"]]["name"],
-                            "program": fav["title"] if fav else "Sonos-Klingelton"})
+                            "program": fav["title"] if fav else ""})
         return sorted(out, key=lambda x: x["time"])
 
     def save_alarm(self, data: dict, alarm_id=None) -> None:

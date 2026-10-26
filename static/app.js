@@ -67,7 +67,7 @@ async function api(path, opts = {}) {
     body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
   });
   const data = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(data.error || data.detail || `Fehler ${r.status}`);
+  if (!r.ok) throw new Error(data.code ? _(`err.${data.code}`, data.params || {}, data.error) : (data.error || data.detail || _("err.http", { status: r.status })));
   return data;
 }
 const post = (p, b = {}) => api(p, { method: "POST", body: b });
@@ -145,7 +145,7 @@ function renderLive() {
   if (!S.state.connected) {
     setHTML($("#rooms"), "");
     setHTML($("#player"), "");
-    $("#roomTitle").textContent = "Nicht verbunden";
+    $("#roomTitle").textContent = _("status.not_connected");
     if (S.view !== "connect") showView("connect");
     return;
   }
@@ -164,10 +164,10 @@ function renderLive() {
 }
 
 function nowLine(g) {
-  if (g.state === "ERROR") return "Nicht erreichbar";
-  const t = g.track || {};
-  if (!t.title) return "Keine Musik";
-  return [t.title, t.artist].filter(Boolean).join(" · ");
+  if (g.state === "ERROR") return _("status.unreachable");
+  const t = g.track || {}, title = trackTitle(g);
+  if (!title) return _("now.no_music");
+  return [title, t.artist].filter(Boolean).join(" · ");
 }
 
 function renderRooms() {
@@ -182,10 +182,17 @@ function renderRooms() {
   setHTML($("#rooms"), html);
 }
 
+/* Titel zur Anzeige: bei TV/Line-In liefert Sonos keinen, dann den Quellnamen */
+function trackTitle(g) {
+  const t = g.track || {};
+  if (t.title) return t.title;
+  return g.source === "TV" || g.source === "LINE_IN" ? _(`source.${g.source}`) : "";
+}
+
 function playIcon(g) { return g.state === "PLAYING" ? icon("pause") : icon("play"); }
 function repeatBtn(g, cls = "") {
   const on = g.repeat !== "off";
-  return `<button class="icon-btn badge repeat ${on ? "" : "off"} ${cls}" data-act="repeat" ${g.repeat === "one" ? 'data-dot="1"' : ""} title="Wiederholen: ${{ off: "aus", all: "alle", one: "einen Titel" }[g.repeat]}">${icon("repeat")}</button>`;
+  return `<button class="icon-btn badge repeat ${on ? "" : "off"} ${cls}" data-act="repeat" ${g.repeat === "one" ? 'data-dot="1"' : ""} title="${_(`ctl.repeat_${g.repeat}`)}">${icon("repeat")}</button>`;
 }
 function canSkip(g) { return g.source !== "RADIO" && g.source !== "TV" && g.source !== "LINE_IN" && g.track.duration > 0; }
 
@@ -199,25 +206,25 @@ function renderPlayer() {
     <div class="p-track" data-act="view" data-view="now">
       ${thumb(t.art)}
       <div class="meta" style="min-width:0">
-        <div class="t ellipsis">${esc(t.title || "Keine Musik")}</div>
+        <div class="t ellipsis">${esc(trackTitle(g) || _("now.no_music"))}</div>
         <div class="s ellipsis">${esc(t.artist || g.name)}</div>
       </div>
     </div>
     <div class="p-center">
       <div class="controls">
-        <button class="icon-btn shuffle ${g.shuffle ? "" : "off"}" data-act="shuffle" title="Zufallswiedergabe">${icon("shuffle")}</button>
-        <button class="icon-btn prev" data-act="transport" data-arg="previous" title="Zurück" ${canSkip(g) ? "" : "disabled"}>${icon("prev")}</button>
-        <button class="icon-btn play-btn" data-act="toggle" title="Wiedergabe/Pause">${playIcon(g)}</button>
-        <button class="icon-btn" data-act="transport" data-arg="next" title="Weiter" ${canSkip(g) ? "" : "disabled"}>${icon("next")}</button>
+        <button class="icon-btn shuffle ${g.shuffle ? "" : "off"}" data-act="shuffle" title="${_("ctl.shuffle")}">${icon("shuffle")}</button>
+        <button class="icon-btn prev" data-act="transport" data-arg="previous" title="${_("ctl.previous")}" ${canSkip(g) ? "" : "disabled"}>${icon("prev")}</button>
+        <button class="icon-btn play-btn" data-act="toggle" title="${_("ctl.play_pause")}">${playIcon(g)}</button>
+        <button class="icon-btn" data-act="transport" data-arg="next" title="${_("ctl.next")}" ${canSkip(g) ? "" : "disabled"}>${icon("next")}</button>
         ${repeatBtn(g)}
       </div>
-      ${t.duration ? `<div class="p-progress"><span data-pos>0:00</span><input type="range" class="seek" data-prog min="0" max="${t.duration}" value="0" aria-label="Position"><span>${fmt(t.duration)}</span></div>` : ""}
+      ${t.duration ? `<div class="p-progress"><span data-pos>0:00</span><input type="range" class="seek" data-prog min="0" max="${t.duration}" value="0" aria-label="${_("ctl.position")}"><span>${fmt(t.duration)}</span></div>` : ""}
     </div>
     <div class="p-right">
       <span class="p-room ellipsis">${esc(g.name)}</span>
-      <button class="icon-btn sm" data-act="stageopen" title="Bühnen-Ansicht">${icon("stage")}</button>
-      <button class="icon-btn sm" data-act="gmute" title="Stumm">${icon(muted ? "mute" : "vol")}</button>
-      <input type="range" min="0" max="100" value="${vol}" data-vol="group" aria-label="Lautstärke">
+      <button class="icon-btn sm" data-act="stageopen" title="${_("stage.open_title")}">${icon("stage")}</button>
+      <button class="icon-btn sm" data-act="gmute" title="${_("ctl.mute")}">${icon(muted ? "mute" : "vol")}</button>
+      <input type="range" min="0" max="100" value="${vol}" data-vol="group" aria-label="${_("ctl.volume")}">
     </div>`);
 }
 
@@ -240,7 +247,7 @@ function tick() {
   syncVideo();
   $$("[data-sleep]").forEach((el) => {
     const left = g.sleep ? g.sleep - (performance.now() - S.stateAt) / 1000 : 0;
-    el.textContent = left > 0 ? `Sleep ${fmt(left)}` : "Sleep-Timer";
+    el.textContent = left > 0 ? _("sleep.remaining", { time: fmt(left) }) : _("sleep.label");
   });
 }
 setInterval(tick, 500);
@@ -269,7 +276,7 @@ function renderStage() {
   if (S.media.key !== mediaKey(g)) loadMedia(g);
   const panel = S.stagePanel;
   const v = S.video, vid = S.stageVideo && v.id, front = vid && S.videoMode === "front";
-  const videoLabel = S.stageVideo && v.candidates && !v.id ? "Video · keins gefunden" : "Video";
+  const videoLabel = S.stageVideo && v.candidates && !v.id ? _("stage.video_none") : _("stage.video");
   const ytLink = vid ? `https://www.youtube.com/watch?v=${v.id}` : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${t.artist} ${t.title}`)}`;
   const gvol = override(`gv:${g.coordinator}`, g.volume), gmute = override(`gm:${g.coordinator}`, g.mute);
   const pill = (id, label) => `<button class="pill ${panel === id ? "active" : ""}" data-act="stagepanel" data-panel="${id}">${label}</button>`;
@@ -280,15 +287,15 @@ function renderStage() {
     <div class="stage-top chrome">
       <div class="stage-room ellipsis">${esc(g.name)}${sourceLabel(g) ? " · " + esc(sourceLabel(g)) : ""}</div>
       <div class="stage-tools">
-        ${pill("lyrics", "Songtext")}${pill("artist", "Interpret")}${pill("queue", "Als Nächstes")}
-        ${t.title && t.artist ? `<button class="pill ${S.stageVideo ? "active" : ""}" data-act="stagevideo" title="Musikvideo stumm mitlaufen lassen">${videoLabel}</button>` : ""}
-        ${vid ? `<span class="seg" title="Video im Hintergrund oder vorne zeigen">
-          <button class="${S.videoMode === "bg" ? "active" : ""}" data-act="videomode" data-mode="bg">Hintergrund</button><button class="${front ? "active" : ""}" data-act="videomode" data-mode="front">Vorne</button></span>` : ""}
-        ${vid ? `<span class="vid-offset" title="Video gegenüber der Musik verschieben">
+        ${pill("lyrics", _("stage.lyrics"))}${pill("artist", _("stage.artist"))}${pill("queue", _("stage.up_next"))}
+        ${t.title && t.artist ? `<button class="pill ${S.stageVideo ? "active" : ""}" data-act="stagevideo" title="${_("stage.video_title")}">${videoLabel}</button>` : ""}
+        ${vid ? `<span class="seg" title="${_("stage.video_mode_title")}">
+          <button class="${S.videoMode === "bg" ? "active" : ""}" data-act="videomode" data-mode="bg">${_("stage.video_bg")}</button><button class="${front ? "active" : ""}" data-act="videomode" data-mode="front">${_("stage.video_front")}</button></span>` : ""}
+        ${vid ? `<span class="vid-offset" title="${_("stage.offset_title")}">
           <button class="icon-btn sm" data-act="vidoffset" data-d="-1">−</button><span>${v.offset > 0 ? "+" : ""}${v.offset} s</span><button class="icon-btn sm" data-act="vidoffset" data-d="1">+</button></span>` : ""}
-        ${t.title && t.artist ? `<a class="icon-btn" title="Bei YouTube öffnen" target="_blank" rel="noopener" href="${esc(ytLink)}">${icon("video")}</a>` : ""}
-        <button class="icon-btn" data-act="fullscreen" title="Vollbild">${icon(document.fullscreenElement ? "shrink" : "expand")}</button>
-        <button class="icon-btn" data-act="stageclose" title="Zur klassischen Ansicht">${icon("close")}</button>
+        ${t.title && t.artist ? `<a class="icon-btn" title="${_("stage.open_youtube")}" target="_blank" rel="noopener" href="${esc(ytLink)}">${icon("video")}</a>` : ""}
+        <button class="icon-btn" data-act="fullscreen" title="${_("stage.fullscreen")}">${icon(document.fullscreenElement ? "shrink" : "expand")}</button>
+        <button class="icon-btn" data-act="stageclose" title="${_("stage.close")}">${icon("close")}</button>
       </div>
     </div>
     <div class="stage-main${front ? " has-video" : ""}">
@@ -297,19 +304,19 @@ function renderStage() {
     </div>
     <div class="stage-bottom">
       <div class="stage-title">
-        <div class="t">${esc(t.title || "Keine Musik")}</div>
+        <div class="t">${esc(trackTitle(g) || _("now.no_music"))}</div>
         <div class="s ellipsis">${esc([t.artist, t.album].filter(Boolean).join(" · "))}</div>
       </div>
       <div class="stage-controls chrome">
         <div class="controls">
-          <button class="icon-btn" data-act="transport" data-arg="previous" title="Zurück" ${canSkip(g) ? "" : "disabled"}>${icon("prev")}</button>
-          <button class="icon-btn play-btn" data-act="toggle" title="Wiedergabe/Pause">${playIcon(g)}</button>
-          <button class="icon-btn" data-act="transport" data-arg="next" title="Weiter" ${canSkip(g) ? "" : "disabled"}>${icon("next")}</button>
+          <button class="icon-btn" data-act="transport" data-arg="previous" title="${_("ctl.previous")}" ${canSkip(g) ? "" : "disabled"}>${icon("prev")}</button>
+          <button class="icon-btn play-btn" data-act="toggle" title="${_("ctl.play_pause")}">${playIcon(g)}</button>
+          <button class="icon-btn" data-act="transport" data-arg="next" title="${_("ctl.next")}" ${canSkip(g) ? "" : "disabled"}>${icon("next")}</button>
         </div>
-        ${t.duration ? `<div class="p-progress"><span data-pos>0:00</span><input type="range" class="seek" data-prog min="0" max="${t.duration}" value="0" aria-label="Position"><span>${fmt(t.duration)}</span></div>` : `<div class="grow"></div>`}
+        ${t.duration ? `<div class="p-progress"><span data-pos>0:00</span><input type="range" class="seek" data-prog min="0" max="${t.duration}" value="0" aria-label="${_("ctl.position")}"><span>${fmt(t.duration)}</span></div>` : `<div class="grow"></div>`}
         <div class="stage-vol">
-          <button class="icon-btn sm" data-act="gmute" title="Stumm">${icon(gmute ? "mute" : "vol")}</button>
-          <input type="range" min="0" max="100" value="${gvol}" data-vol="group" aria-label="Lautstärke">
+          <button class="icon-btn sm" data-act="gmute" title="${_("ctl.mute")}">${icon(gmute ? "mute" : "vol")}</button>
+          <input type="range" min="0" max="100" value="${gvol}" data-vol="group" aria-label="${_("ctl.volume")}">
         </div>
       </div>
     </div>`);
@@ -328,7 +335,7 @@ function loadYouTubeApi() {
     window.onYouTubeIframeAPIReady = resolve;
     const s = document.createElement("script");
     s.src = "https://www.youtube.com/iframe_api";
-    s.onerror = () => { ytApi = null; reject(new Error("YouTube nicht erreichbar")); };
+    s.onerror = () => { ytApi = null; reject(new Error(_("stage.youtube_unreachable"))); };
     document.head.append(s);
   });
 }
@@ -420,33 +427,33 @@ function parseLrc(text) {
 
 function stagePanelHTML(g) {
   const m = S.media, t = g.track || {};
-  const loading = `<div class="stage-note">Lädt …</div>`;
+  const loading = `<div class="stage-note">${_("common.loading")}</div>`;
   if (S.stagePanel === "lyrics") {
-    if (!t.artist || !t.title) return `<div class="stage-note">Kein Songtext für diese Quelle</div>`;
+    if (!t.artist || !t.title) return `<div class="stage-note">${_("stage.lyrics_no_source")}</div>`;
     if (m.lyrics === undefined) return loading;
-    if (!m.lyrics) return `<div class="stage-note">Kein Songtext gefunden</div>`;
-    if (m.lyrics.instrumental) return `<div class="stage-note">♪ Instrumental</div>`;
+    if (!m.lyrics) return `<div class="stage-note">${_("stage.lyrics_none")}</div>`;
+    if (m.lyrics.instrumental) return `<div class="stage-note">${_("stage.instrumental")}</div>`;
     const lines = m.lyrics.synced ? parseLrc(m.lyrics.synced) : null;
     const body = lines?.length
       ? lines.map((l) => `<p class="line" data-t="${l.t}">${esc(l.text) || "♪"}</p>`).join("")
       : `<div class="plain">${esc(m.lyrics.plain || "")}</div>`;
-    return `<div class="lyrics">${body}</div><div class="stage-source">Songtext: LRCLIB</div>`;
+    return `<div class="lyrics">${body}</div><div class="stage-source">${esc(_("stage.lyrics_source", { source: m.lyrics.source || "LRCLIB" }))}</div>`;
   }
   if (S.stagePanel === "artist") {
-    if (!t.artist) return `<div class="stage-note">Kein Interpret</div>`;
+    if (!t.artist) return `<div class="stage-note">${_("stage.artist_none")}</div>`;
     if (m.artist === undefined) return loading;
-    if (!m.artist) return `<div class="stage-note">Keine Infos zu ${esc(t.artist)} gefunden</div>`;
+    if (!m.artist) return `<div class="stage-note">${esc(_("stage.artist_not_found", { name: t.artist }))}</div>`;
     const a = m.artist;
     return `<div class="artist-card">
       ${a.image ? `<img src="${esc(a.image)}" alt="" loading="lazy">` : ""}
       <h3>${esc(a.name)}</h3>${a.description ? `<div class="muted">${esc(a.description)}</div>` : ""}
       <p>${esc(a.extract || "")}</p>
-      ${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">Weiterlesen bei ${esc(a.source)}</a>` : ""}
+      ${a.url ? `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(_("stage.read_more", { source: a.source }))}</a>` : ""}
     </div>`;
   }
   if (S.stagePanel === "queue") {
     if (m.queue === undefined) return loading;
-    if (!m.queue.length) return `<div class="stage-note">Nichts in der Warteschlange</div>`;
+    if (!m.queue.length) return `<div class="stage-note">${_("stage.queue_empty")}</div>`;
     return `<div class="list">${m.queue.map((it) => `<div class="row clickable" data-act="qplay" data-index="${it.index}">
       ${thumb(it.art)}<div class="meta"><div class="t ellipsis">${esc(it.title)}</div><div class="s ellipsis">${esc(it.subtitle)}</div></div></div>`).join("")}</div>`;
   }
@@ -521,65 +528,65 @@ function showView(v, push = true) {
   el.scrollTop = 0;
   if (v === "now") setHTML(el, viewNow());
   else if (v === "connect") viewConnect();
-  else { el.innerHTML = `<div class="skeleton">Lädt …</div>`; VIEWS[v](); }
+  else { el.innerHTML = `<div class="skeleton">${_("common.loading")}</div>`; VIEWS[v](); }
   renderStage();
   if (push) tick();
 }
 
 function sourceLabel(g) {
-  return { RADIO: "Radio", TV: "TV", LINE_IN: "Line-In", LIBRARY: "Musikbibliothek", SPOTIFY_CONNECT: "Spotify Connect", APPLE_MUSIC: "Apple Music", AIRPLAY: "AirPlay", WEB_FILE: "Stream", NONE: "", UNKNOWN: "" }[g.source] ?? (g.source || "").replace(/_/g, " ");
+  return _(`source.${g.source || "NONE"}`, {}, (g.source || "").replace(/_/g, " "));
 }
 
 function viewNow() {
   const g = S.group;
-  if (!g) return `<div class="empty">${icon("speaker")}<div>Keine Räume gefunden</div></div>`;
+  if (!g) return `<div class="empty">${icon("speaker")}<div>${_("now.no_rooms")}</div></div>`;
   const t = g.track || {};
   const set = S.settings[g.coordinator];
   if (!set) loadSettings(g.coordinator).then(() => S.view === "now" && setHTML($("#view"), viewNow()));
   const sources = [];
-  if (set?.is_soundbar) sources.push(`<button class="chip ${g.source === "TV" ? "active" : ""}" data-act="source" data-arg="tv">${"TV"}</button>`);
-  if (set?.line_in) sources.push(`<button class="chip ${g.source === "LINE_IN" ? "active" : ""}" data-act="source" data-arg="linein">Line-In</button>`);
+  if (set?.is_soundbar) sources.push(`<button class="chip ${g.source === "TV" ? "active" : ""}" data-act="source" data-arg="tv">${_("source.TV")}</button>`);
+  if (set?.line_in) sources.push(`<button class="chip ${g.source === "LINE_IN" ? "active" : ""}" data-act="source" data-arg="linein">${_("source.LINE_IN")}</button>`);
   const gvol = override(`gv:${g.coordinator}`, g.volume);
   const gmute = override(`gm:${g.coordinator}`, g.mute);
   const members = g.members.map((m) => {
     const v = override(`v:${m.uid}`, m.volume), mu = override(`m:${m.uid}`, m.mute);
     return `<div class="vol-row">
-      <button class="icon-btn sm ${mu ? "off" : ""}" data-act="mute" data-uid="${esc(m.uid)}" title="Stumm">${icon(mu ? "mute" : "vol")}</button>
+      <button class="icon-btn sm ${mu ? "off" : ""}" data-act="mute" data-uid="${esc(m.uid)}" title="${_("ctl.mute")}">${icon(mu ? "mute" : "vol")}</button>
       <span class="n ellipsis">${esc(m.name)}</span>
-      <input type="range" min="0" max="100" value="${v}" data-vol="member" data-uid="${esc(m.uid)}" aria-label="Lautstärke ${esc(m.name)}" ${m.fixed_volume ? "disabled" : ""}>
+      <input type="range" min="0" max="100" value="${v}" data-vol="member" data-uid="${esc(m.uid)}" aria-label="${esc(_("ctl.volume_of", { name: m.name }))}" ${m.fixed_volume ? "disabled" : ""}>
       <span class="v" data-vlabel="${esc(m.uid)}">${v}</span></div>`;
   }).join("");
   return `<div class="now">
     ${thumb(t.art, "cover")}
     <div class="info">
       <div class="source">${esc(g.name)}${sourceLabel(g) ? " · " + esc(sourceLabel(g)) : ""}
-        <button class="btn stage-open" data-act="stageopen" title="Bühnen-Ansicht: großes Cover, Songtext, Interpret">${icon("stage")}Bühne</button></div>
-      <h1>${esc(t.title || "Keine Musik")}</h1>
-      <div class="artist">${esc(t.artist || (t.title ? "" : "Wähle Favoriten, Playlists oder Musik aus der Bibliothek."))}</div>
+        <button class="btn stage-open" data-act="stageopen" title="${_("stage.open_hint")}">${icon("stage")}${_("stage.button")}</button></div>
+      <h1>${esc(trackTitle(g) || _("now.no_music"))}</h1>
+      <div class="artist">${esc(t.artist || (trackTitle(g) ? "" : _("now.pick_hint")))}</div>
       <div class="album">${esc(t.album || "")}</div>
       ${t.duration ? `<div class="progress">
-        <input type="range" class="seek" data-prog min="0" max="${t.duration}" value="0" aria-label="Position">
+        <input type="range" class="seek" data-prog min="0" max="${t.duration}" value="0" aria-label="${_("ctl.position")}">
         <div class="times"><span data-pos>0:00</span><span>${fmt(t.duration)}</span></div>
-      </div>` : t.title ? `<div class="live">Live</div>` : `<div class="progress"></div>`}
+      </div>` : trackTitle(g) ? `<div class="live">${_("now.live")}</div>` : `<div class="progress"></div>`}
       <div class="controls">
-        <button class="icon-btn ${g.shuffle ? "" : "off"}" data-act="shuffle" title="Zufallswiedergabe">${icon("shuffle")}</button>
-        <button class="icon-btn" data-act="transport" data-arg="previous" title="Zurück" ${canSkip(g) ? "" : "disabled"}>${icon("prev")}</button>
-        <button class="icon-btn play-btn" data-act="toggle" title="Wiedergabe/Pause">${playIcon(g)}</button>
-        <button class="icon-btn" data-act="transport" data-arg="next" title="Weiter" ${canSkip(g) ? "" : "disabled"}>${icon("next")}</button>
+        <button class="icon-btn ${g.shuffle ? "" : "off"}" data-act="shuffle" title="${_("ctl.shuffle")}">${icon("shuffle")}</button>
+        <button class="icon-btn" data-act="transport" data-arg="previous" title="${_("ctl.previous")}" ${canSkip(g) ? "" : "disabled"}>${icon("prev")}</button>
+        <button class="icon-btn play-btn" data-act="toggle" title="${_("ctl.play_pause")}">${playIcon(g)}</button>
+        <button class="icon-btn" data-act="transport" data-arg="next" title="${_("ctl.next")}" ${canSkip(g) ? "" : "disabled"}>${icon("next")}</button>
         ${repeatBtn(g)}
       </div>
       <div class="option-row">
-        <button class="chip ${g.crossfade ? "active" : ""}" data-act="crossfade">Crossfade</button>
-        <button class="chip ${g.sleep ? "active" : ""}" data-act="sleep" data-sleep>Sleep-Timer</button>
+        <button class="chip ${g.crossfade ? "active" : ""}" data-act="crossfade">${_("now.crossfade")}</button>
+        <button class="chip ${g.sleep ? "active" : ""}" data-act="sleep" data-sleep>${_("sleep.label")}</button>
         ${sources.join("")}
-        <button class="chip" data-act="view" data-view="rooms">Gruppieren</button>
+        <button class="chip" data-act="view" data-view="rooms">${_("now.group")}</button>
       </div>
       <div class="panel">
-        <h3><span>Lautstärke</span></h3>
+        <h3><span>${_("now.volume")}</span></h3>
         ${g.members.length > 1 ? `<div class="vol-row master">
-          <button class="icon-btn sm ${gmute ? "off" : ""}" data-act="gmute" title="Gruppe stumm">${icon(gmute ? "mute" : "vol")}</button>
-          <span class="n">Gruppe</span>
-          <input type="range" min="0" max="100" value="${gvol}" data-vol="group" aria-label="Gruppenlautstärke">
+          <button class="icon-btn sm ${gmute ? "off" : ""}" data-act="gmute" title="${_("ctl.mute_group")}">${icon(gmute ? "mute" : "vol")}</button>
+          <span class="n">${_("now.group_label")}</span>
+          <input type="range" min="0" max="100" value="${gvol}" data-vol="group" aria-label="${_("ctl.group_volume")}">
           <span class="v" data-vlabel="group">${gvol}</span></div>` : ""}
         ${members}
       </div>
@@ -602,18 +609,18 @@ async function loadQueue() {
         ${thumb(it.art)}
         <div class="meta"><div class="t ellipsis">${esc(it.title)}</div><div class="s ellipsis">${esc(it.subtitle)}</div></div>
         <div class="actions">
-          <button class="icon-btn sm" data-act="qremove" data-index="${it.index}" title="Entfernen">${icon("close")}</button>
-          <span class="icon-btn sm drag" title="Ziehen zum Verschieben">${icon("drag")}</span>
+          <button class="icon-btn sm" data-act="qremove" data-index="${it.index}" title="${_("common.remove")}">${icon("close")}</button>
+          <span class="icon-btn sm drag" title="${_("queue.drag")}">${icon("drag")}</span>
         </div>
       </div>`).join("");
     setHTML($("#view"), `
       <div class="head-row">
-        <div class="grow"><h1 class="title">Warteschlange</h1><div class="muted">${q.total} Titel · ${esc(g.name)}</div></div>
-        <button class="btn" data-act="qsave" ${q.total ? "" : "disabled"}>${icon("save")}Als Playlist speichern</button>
-        <button class="btn danger" data-act="qclear" ${q.total ? "" : "disabled"}>${icon("trash")}Leeren</button>
+        <div class="grow"><h1 class="title">${_("queue.title")}</h1><div class="muted">${_("common.tracks", { count: q.total })} · ${esc(g.name)}</div></div>
+        <button class="btn" data-act="qsave" ${q.total ? "" : "disabled"}>${icon("save")}${_("queue.save")}</button>
+        <button class="btn danger" data-act="qclear" ${q.total ? "" : "disabled"}>${icon("trash")}${_("queue.clear")}</button>
       </div>
-      ${q.total ? `<div class="list" id="queueList">${rows}</div>${q.total > q.items.length ? `<div class="muted" style="padding:12px">… und ${q.total - q.items.length} weitere</div>` : ""}`
-        : `<div class="empty">${icon("queue")}<div>Die Warteschlange ist leer.</div></div>`}`);
+      ${q.total ? `<div class="list" id="queueList">${rows}</div>${q.total > q.items.length ? `<div class="muted" style="padding:12px">${_("queue.more", { count: q.total - q.items.length })}</div>` : ""}`
+        : `<div class="empty">${icon("queue")}<div>${_("queue.empty")}</div></div>`}`);
   } catch (e) { setHTML($("#view"), `<div class="empty">${esc(e.message)}</div>`); }
 }
 
@@ -623,10 +630,10 @@ function tile(it, opts = {}) {
   return `<div class="tile${act === "unavailable" ? " unplayable" : ""}" data-id="${esc(it.id)}">
     <button style="width:100%;text-align:left" data-act="${act}" data-id="${esc(it.browse_id || it.id)}" data-title="${esc(it.title)}" >
       ${it.arts?.length >= 4 ? mosaic(it.arts) : thumb(it.art, "", KIND_ICON[it.kind] || (it.stream ? "radio" : "music"))}
-      <div class="t ellipsis">${esc(it.title)}</div><div class="s ellipsis">${esc(it.subtitle || "")}</div>
+      <div class="t ellipsis">${esc(it.title)}</div><div class="s ellipsis">${esc(it.subtitle || (it.count != null ? _("common.tracks", { count: it.count }) : ""))}</div>
     </button>
-    ${it.playable ? `<button class="play-fab" data-act="playitem" data-id="${esc(it.id)}" title="Abspielen">${icon("play")}</button>` : ""}
-    ${opts.menu !== false && !it.stream && it.playable ? `<button class="icon-btn sm" style="position:absolute;right:0;bottom:2px" data-act="itemmenu" data-id="${esc(it.id)}" data-title="${esc(it.title)}" ${opts.playlist ? 'data-playlist="1"' : ""} title="Optionen">${icon("more")}</button>` : ""}
+    ${it.playable ? `<button class="play-fab" data-act="playitem" data-id="${esc(it.id)}" title="${_("common.play")}">${icon("play")}</button>` : ""}
+    ${opts.menu !== false && !it.stream && it.playable ? `<button class="icon-btn sm" style="position:absolute;right:0;bottom:2px" data-act="itemmenu" data-id="${esc(it.id)}" data-title="${esc(it.title)}" ${opts.playlist ? 'data-playlist="1"' : ""} title="${_("common.options")}">${icon("more")}</button>` : ""}
   </div>`;
 }
 
@@ -635,9 +642,9 @@ async function loadFavorites() {
     const items = await api(`/api/zones/${encodeURIComponent(S.group.coordinator)}/favorites`);
     S.favs = items;
     if (S.view !== "favorites") return;
-    setHTML($("#view"), `<div class="head-row"><div class="grow"><h1 class="title">Sonos-Favoriten</h1><div class="muted">${items.length} Einträge</div></div></div>
+    setHTML($("#view"), `<div class="head-row"><div class="grow"><h1 class="title">${_("fav.title")}</h1><div class="muted">${_("common.entries", { count: items.length })}</div></div></div>
       ${items.length ? `<div class="grid">${items.map((i) => tile(i)).join("")}</div>`
-        : `<div class="empty">${icon("star")}<div>Noch keine Favoriten. Favoriten legst du in der Sonos-App an.</div></div>`}`);
+        : `<div class="empty">${icon("star")}<div>${_("fav.empty")}</div></div>`}`);
   } catch (e) { setHTML($("#view"), `<div class="empty">${esc(e.message)}</div>`); }
 }
 
@@ -647,16 +654,16 @@ async function loadPlaylists() {
     if (S.view !== "playlists") return;
     S.playlists = items;
     if (items.some((i) => i.covers_pending)) setTimeout(() => S.view === "playlists" && loadPlaylists(), 2500);
-    setHTML($("#view"), `<div class="head-row"><div class="grow"><h1 class="title">Sonos-Playlists</h1><div class="muted">${items.length} Playlists</div></div></div>
+    setHTML($("#view"), `<div class="head-row"><div class="grow"><h1 class="title">${_("pl.title")}</h1><div class="muted">${_("pl.count", { count: items.length })}</div></div></div>
       ${items.length ? `<div class="grid">${items.map((i) => tile(i, { open: true, playlist: true })).join("")}</div>`
-        : `<div class="empty">${icon("list")}<div>Keine Playlists. Speichere die Warteschlange als Playlist, um eine anzulegen.</div></div>`}`);
+        : `<div class="empty">${icon("list")}<div>${_("pl.empty")}</div></div>`}`);
   } catch (e) { setHTML($("#view"), `<div class="empty">${esc(e.message)}</div>`); }
 }
 
 /* ---------------------------------------------------------------- Bibliothek */
 const LIB_ROOTS = [
-  ["A:ALBUMARTIST", "Interpreten"], ["A:ALBUM", "Alben"], ["A:TRACKS", "Titel"], ["A:GENRE", "Genres"],
-  ["A:COMPOSER", "Komponisten"], ["A:PLAYLISTS", "Importierte Playlists"], ["S:", "Ordner"],
+  ["A:ALBUMARTIST", "lib.artists"], ["A:ALBUM", "lib.albums"], ["A:TRACKS", "lib.tracks"], ["A:GENRE", "lib.genres"],
+  ["A:COMPOSER", "lib.composers"], ["A:PLAYLISTS", "lib.imported"], ["S:", "lib.folders"],
 ];
 
 async function loadLibrary(more = false) {
@@ -678,9 +685,9 @@ async function loadLibrary(more = false) {
 const svcRoot = (id) => `svc:${id.split(":")[1]}:container:root`;
 const searchable = (root) => root.startsWith("A:") || root.startsWith("svc:");
 function rootLabel(root) {
-  if (root === "SQ:") return "Playlists";
-  if (root.startsWith("svc:")) return (S.services || []).find((x) => x.root === root)?.name || "Musikdienst";
-  return (LIB_ROOTS.find((r) => r[0] === root) || [, "Bibliothek"])[1];
+  if (root === "SQ:") return _("pl.short");
+  if (root.startsWith("svc:")) return (S.services || []).find((x) => x.root === root)?.name || _("lib.service");
+  return _((LIB_ROOTS.find((r) => r[0] === root) || [, "lib.title"])[1]);
 }
 async function loadServices() {
   try { S.services = await api(`/api/zones/${encodeURIComponent(S.group.coordinator)}/services`); } catch { S.services = []; }
@@ -690,13 +697,13 @@ async function loadServices() {
 function libHeader() {
   const L = S.lib;
   const rootName = rootLabel(L.root);
-  const roots = [...(S.services || []).filter((x) => x.linked).map((x) => [x.root, x.name]), ...LIB_ROOTS];
+  const roots = [...(S.services || []).filter((x) => x.linked).map((x) => [x.root, x.name]), ...LIB_ROOTS.map(([id, k]) => [id, _(k)])];
   const crumbs = L.stack.length ? `<div class="crumbs"><button data-act="crumb" data-depth="0">${esc(rootName)}</button>${L.stack.map((s, i) => i === L.stack.length - 1
     ? `<span>/</span><b>${esc(s.title)}</b>` : `<span>/</span><button data-act="crumb" data-depth="${i + 1}">${esc(s.title)}</button>`).join("")}</div>` : "";
   return `<div class="head-row">
-      <div class="grow"><h1 class="title">${L.root === "SQ:" ? "Playlist" : L.root.startsWith("svc:") ? esc(rootName) : "Musikbibliothek"}</h1></div>
-      ${searchable(L.root) && !L.stack.length ? `<label class="search">${icon("search")}<input id="libSearch" type="search" placeholder="In ${esc(rootName)} suchen" value="${esc(L.search)}"></label>` : ""}
-      <button class="icon-btn" data-act="libupdate" title="Bibliothek neu indizieren">${icon("refresh")}</button>
+      <div class="grow"><h1 class="title">${L.root === "SQ:" ? _("lib.playlist") : L.root.startsWith("svc:") ? esc(rootName) : _("lib.title")}</h1></div>
+      ${searchable(L.root) && !L.stack.length ? `<label class="search">${icon("search")}<input id="libSearch" type="search" placeholder="${esc(_("lib.search_in", { name: rootName }))}" value="${esc(L.search)}"></label>` : ""}
+      <button class="icon-btn" data-act="libupdate" title="${_("lib.reindex")}">${icon("refresh")}</button>
     </div>
     <div class="chips" style="margin-bottom:20px">${roots.map(([id, n]) => `<button class="chip ${L.root === id ? "active" : ""}" data-act="libroot" data-id="${id}">${n}</button>`).join("")}</div>
     ${crumbs}`;
@@ -726,16 +733,16 @@ function renderServiceHome() {
   const editing = !!S.shelfEdit;
   el._html = null;
   el.innerHTML = libHeader() + `<div class="shelf-toolbar">
-      ${editing ? `<span class="muted">Zeilen mit den Pfeilen${matchMedia("(hover: hover)").matches ? " oder per Ziehen" : ""} verschieben</span>
-        <button class="btn" data-act="shelfreset">Standard</button><button class="btn primary" data-act="shelfedit">Fertig</button>`
-      : `<button class="btn" data-act="shelfedit">${icon("drag")}Anordnen</button>`}
+      ${editing ? `<span class="muted">${matchMedia("(hover: hover)").matches ? _("shelf.hint_drag") : _("shelf.hint")}</span>
+        <button class="btn" data-act="shelfreset">${_("shelf.reset")}</button><button class="btn primary" data-act="shelfedit">${_("common.done")}</button>`
+      : `<button class="btn" data-act="shelfedit">${icon("drag")}${_("shelf.arrange")}</button>`}
     </div>` + secs.map((sec, i) => `<section class="shelf-sec${editing ? " editing" : ""}" data-sec="${esc(sec.id)}" ${editing ? 'draggable="true"' : ""}>
       <div class="shelf-head">
         ${editing ? `<span class="drag">${icon("drag")}</span>` : ""}
         <button data-act="open" data-id="${esc(sec.id)}" data-title="${esc(sec.title)}">${esc(sec.title)}${icon("chevron")}</button>
         ${editing ? `<span class="shelf-nav edit">
-          <button class="icon-btn sm" data-act="shelfmove" data-dir="-1" title="Nach oben" ${i === 0 ? "disabled" : ""}>${icon("chevron", "up")}</button>
-          <button class="icon-btn sm" data-act="shelfmove" data-dir="1" title="Nach unten" ${i === secs.length - 1 ? "disabled" : ""}>${icon("chevron", "down")}</button></span>` : `<span class="shelf-nav"><button class="icon-btn sm" data-act="shelfscroll" data-dir="-1" title="Zurück">${icon("chevron", "flip")}</button><button class="icon-btn sm" data-act="shelfscroll" data-dir="1" title="Weiter">${icon("chevron")}</button></span>`}
+          <button class="icon-btn sm" data-act="shelfmove" data-dir="-1" title="${_("shelf.up")}" ${i === 0 ? "disabled" : ""}>${icon("chevron", "up")}</button>
+          <button class="icon-btn sm" data-act="shelfmove" data-dir="1" title="${_("shelf.down")}" ${i === secs.length - 1 ? "disabled" : ""}>${icon("chevron", "down")}</button></span>` : `<span class="shelf-nav"><button class="icon-btn sm" data-act="shelfscroll" data-dir="-1" title="${_("ctl.previous")}">${icon("chevron", "flip")}</button><button class="icon-btn sm" data-act="shelfscroll" data-dir="1" title="${_("ctl.next")}">${icon("chevron")}</button></span>`}
       </div>
       <div class="shelf" id="shelf-${i}">${shelfBody(shelves[sec.id])}</div>
     </section>`).join("");
@@ -749,8 +756,8 @@ function renderServiceHome() {
     if (box && S.view === "library" && S.lib.items === L.items) box.innerHTML = shelfBody(shelves[sec.id]);
   });
 }
-const shelfBody = (items) => items === undefined ? `<div class="skeleton">Lädt …</div>`
-  : items.length ? items.map((i) => tile(i, { open: i.container })).join("") : `<div class="muted">Keine Einträge</div>`;
+const shelfBody = (items) => items === undefined ? `<div class="skeleton">${_("common.loading")}</div>`
+  : items.length ? items.map((i) => tile(i, { open: i.container })).join("") : `<div class="muted">${_("common.no_entries")}</div>`;
 
 function renderLibrary() {
   const L = S.lib;
@@ -759,14 +766,14 @@ function renderLibrary() {
   const items = L.items || [];
   const asGrid = items.length && items.filter((i) => i.container && i.art).length > items.length * 0.6;
   let body;
-  if (!items.length) body = `<div class="empty">${icon("music")}<div>${L.search ? "Keine Treffer" : "Keine Einträge"}</div></div>`;
+  if (!items.length) body = `<div class="empty">${icon("music")}<div>${L.search ? _("common.no_results") : _("common.no_entries")}</div></div>`;
   else if (asGrid) body = `<div class="grid">${items.map((i) => tile(i, { open: true })).join("")}</div>`;
   else body = `<div class="list">${items.map((i) => itemRow(i)).join("")}</div>`;
   const levelActions = level && level.playable ? `<div class="head-row" style="margin-top:-4px">
-      <button class="btn primary" data-act="playitem" data-id="${esc(level.id)}">${icon("play")}Abspielen</button>
-      <button class="btn" data-act="itemmenu" data-id="${esc(level.id)}" data-title="${esc(level.title)}" ${level.id.startsWith("SQ:") ? 'data-playlist="1"' : ""}>${icon("more")}Mehr</button></div>` : "";
+      <button class="btn primary" data-act="playitem" data-id="${esc(level.id)}">${icon("play")}${_("common.play")}</button>
+      <button class="btn" data-act="itemmenu" data-id="${esc(level.id)}" data-title="${esc(level.title)}" ${level.id.startsWith("SQ:") ? 'data-playlist="1"' : ""}>${icon("more")}${_("common.more")}</button></div>` : "";
   setHTML($("#view"), libHeader() + levelActions + body +
-    (L.total > items.length ? `<div style="text-align:center;margin-top:20px"><button class="btn" data-act="libmore">Mehr laden (${items.length} von ${L.total})</button></div>` : ""));
+    (L.total > items.length ? `<div style="text-align:center;margin-top:20px"><button class="btn" data-act="libmore">${_("lib.load_more", { shown: items.length, total: L.total })}</button></div>` : ""));
 }
 
 function itemRow(it) {
@@ -774,21 +781,21 @@ function itemRow(it) {
     ${thumb(it.art, "", KIND_ICON[it.kind] || (it.container ? "folder" : "music"))}
     <div class="meta"><div class="t ellipsis">${esc(it.title)}</div><div class="s ellipsis">${esc(it.subtitle || "")}</div></div>
     <div class="actions">
-      ${it.playable ? `<button class="icon-btn sm" data-act="playitem" data-id="${esc(it.id)}" title="Abspielen">${icon("play")}</button>` : ""}
-      ${it.playable ? `<button class="icon-btn sm" data-act="itemmenu" data-id="${esc(it.id)}" data-title="${esc(it.title)}" title="Optionen">${icon("more")}</button>` : ""}
+      ${it.playable ? `<button class="icon-btn sm" data-act="playitem" data-id="${esc(it.id)}" title="${_("common.play")}">${icon("play")}</button>` : ""}
+      ${it.playable ? `<button class="icon-btn sm" data-act="itemmenu" data-id="${esc(it.id)}" data-title="${esc(it.title)}" title="${_("common.options")}">${icon("more")}</button>` : ""}
     </div>
     ${it.container ? `<span class="muted">${icon("chevron")}</span>` : ""}
   </div>`;
 }
 
 /* ---------------------------------------------------------------- Wecker */
-const DAYS = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
+const dayNames = () => _("days.short");
 function recurrenceText(r) {
-  if (r === "DAILY") return "Täglich";
-  if (r === "WEEKDAYS") return "Mo – Fr";
-  if (r === "WEEKENDS") return "Sa, So";
-  if (r === "ONCE") return "Einmalig";
-  if (r.startsWith("ON_")) return [1, 2, 3, 4, 5, 6, 0].filter((d) => r.includes(String(d))).map((d) => DAYS[d]).join(", ");
+  if (r === "DAILY") return _("alarm.daily");
+  if (r === "WEEKDAYS") return _("alarm.weekdays_short");
+  if (r === "WEEKENDS") return _("alarm.weekends_short");
+  if (r === "ONCE") return _("alarm.once");
+  if (r.startsWith("ON_")) return [1, 2, 3, 4, 5, 6, 0].filter((d) => r.includes(String(d))).map((d) => dayNames()[d]).join(", ");
   return r;
 }
 
@@ -797,15 +804,15 @@ async function loadAlarms() {
     const list = await api("/api/alarms");
     S.alarms = list;
     if (S.view !== "alarms") return;
-    setHTML($("#view"), `<div class="head-row"><div class="grow"><h1 class="title">Wecker</h1><div class="muted">${list.length} Wecker</div></div>
-      <button class="btn primary" data-act="alarmedit">${icon("plus")}Neuer Wecker</button></div>
+    setHTML($("#view"), `<div class="head-row"><div class="grow"><h1 class="title">${_("alarm.title")}</h1><div class="muted">${_("alarm.count", { count: list.length })}</div></div>
+      <button class="btn primary" data-act="alarmedit">${icon("plus")}${_("alarm.new")}</button></div>
       ${list.length ? list.map((a) => `<div class="alarm ${a.enabled ? "" : "off"}">
           <div class="time">${esc(a.time)}</div>
           <div class="meta"><div><b>${esc(a.room)}</b> · ${esc(recurrenceText(a.recurrence))}</div>
-            <div class="muted ellipsis">${esc(a.program)} · Lautstärke ${a.volume}${a.duration ? ` · ${a.duration} Min.` : ""}</div></div>
-          <button class="icon-btn sm" data-act="alarmedit" data-id="${esc(a.id)}" title="Bearbeiten">${icon("edit")}</button>
-          <label class="switch" title="Aktiv"><input type="checkbox" data-alarm-toggle="${esc(a.id)}" ${a.enabled ? "checked" : ""}><i></i></label>
-        </div>`).join("") : `<div class="empty">${icon("alarm")}<div>Keine Wecker eingerichtet.</div></div>`}`);
+            <div class="muted ellipsis">${esc(a.program || _("alarm.chime"))} · ${esc(_("alarm.volume_n", { n: a.volume }))}${a.duration ? ` · ${esc(_("alarm.minutes", { n: a.duration }))}` : ""}</div></div>
+          <button class="icon-btn sm" data-act="alarmedit" data-id="${esc(a.id)}" title="${_("common.edit")}">${icon("edit")}</button>
+          <label class="switch" title="${_("alarm.active")}"><input type="checkbox" data-alarm-toggle="${esc(a.id)}" ${a.enabled ? "checked" : ""}><i></i></label>
+        </div>`).join("") : `<div class="empty">${icon("alarm")}<div>${_("alarm.empty")}</div></div>`}`);
   } catch (e) { setHTML($("#view"), `<div class="empty">${esc(e.message)}</div>`); }
 }
 
@@ -824,17 +831,19 @@ async function loadRooms() {
   const el = $("#view");
   el._html = null;
   el.innerHTML = `
-    <div class="head-row"><div class="grow"><h1 class="title">Räume</h1><div class="muted">${S.speakers.length} Lautsprecher</div></div>
-      <button class="btn" data-act="party">${icon("link")}Alle verbinden</button>
-      <button class="btn" data-act="ungroupall">${icon("unlink")}Alle trennen</button></div>
-    <h2>Gruppen</h2><div class="cards" id="groupCards"></div>
-    <h2>Lautsprecher-Einstellungen</h2>
+    <div class="head-row"><div class="grow"><h1 class="title">${_("rooms.title")}</h1><div class="muted">${_("rooms.speakers", { count: S.speakers.length })}</div></div>
+      <button class="btn" data-act="party">${icon("link")}${_("rooms.party")}</button>
+      <button class="btn" data-act="ungroupall">${icon("unlink")}${_("rooms.ungroup_all")}</button></div>
+    <h2>${_("rooms.groups")}</h2><div class="cards" id="groupCards"></div>
+    <h2>${_("rooms.speaker_settings")}</h2>
     <div class="chips" style="margin-bottom:16px">${S.speakers.map((s) => `<button class="chip ${s.uid === S.setUid ? "active" : ""}" data-act="setuid" data-uid="${esc(s.uid)}">${esc(s.name)}</button>`).join("")}</div>
-    <div id="speakerSettings"><div class="skeleton">Lädt …</div></div>
-    <h2>Musikdienste</h2><div id="servicesPanel"><div class="skeleton">Lädt …</div></div>
-    <h2>System</h2><div id="systemPanel"></div>`;
+    <div id="speakerSettings"><div class="skeleton">${_("common.loading")}</div></div>
+    <h2>${_("rooms.services")}</h2><div id="servicesPanel"><div class="skeleton">${_("common.loading")}</div></div>
+    <h2>${_("rooms.language")}</h2><div id="langPanel"></div>
+    <h2>${_("rooms.system")}</h2><div id="systemPanel"></div>`;
   renderGroupsSection();
   renderSystemPanel();
+  renderLangPanel();
   renderServicesPanel();
   renderSpeakerSettings();
 }
@@ -844,18 +853,13 @@ function renderGroupsSection() {
   if (!el || !S.state?.groups) return;
   setHTML(el, S.state.groups.map((g) => `<div class="card">
     <div class="head-row" style="margin-bottom:8px"><div class="grow"><h4 class="ellipsis">${esc(g.name)}</h4><div class="sub ellipsis">${esc(nowLine(g))}</div></div>
-      <button class="btn" data-act="groupedit" data-uid="${esc(g.coordinator)}">${icon("link")}Bearbeiten</button></div>
-    ${g.members.map((m) => `<div class="member">${icon("speaker")}<span>${esc(m.name)}${m.uid === g.coordinator ? ' <span class="muted">· Koordinator</span>' : ""}</span>
-      ${g.members.length > 1 ? `<button class="icon-btn sm" data-act="unjoin" data-uid="${esc(m.uid)}" title="Aus Gruppe lösen">${icon("unlink")}</button>` : ""}</div>`).join("")}
+      <button class="btn" data-act="groupedit" data-uid="${esc(g.coordinator)}">${icon("link")}${_("common.edit")}</button></div>
+    ${g.members.map((m) => `<div class="member">${icon("speaker")}<span>${esc(m.name)}${m.uid === g.coordinator ? ` <span class="muted">${_("rooms.coordinator")}</span>` : ""}</span>
+      ${g.members.length > 1 ? `<button class="icon-btn sm" data-act="unjoin" data-uid="${esc(m.uid)}" title="${_("rooms.unjoin")}">${icon("unlink")}</button>` : ""}</div>`).join("")}
   </div>`).join(""));
 }
 
-const EQ_LABELS = {
-  bass: "Bässe", treble: "Höhen", balance: "Balance", loudness: "Loudness", night_mode: "Nachtmodus",
-  dialog_mode: "Sprachverbesserung", sub_enabled: "Subwoofer", sub_gain: "Subwoofer-Pegel",
-  surround_enabled: "Surround", surround_level: "Surround-Pegel (TV)", music_surround_level: "Surround-Pegel (Musik)",
-  surround_full_volume_enabled: "Surround volle Lautstärke", audio_delay: "Lippensynchronität", trueplay: "Trueplay",
-};
+const eqLabel = (k) => _(`eq.${k}`, {}, k);
 
 async function renderSpeakerSettings() {
   const uid = S.setUid;
@@ -863,26 +867,26 @@ async function renderSpeakerSettings() {
   if (!el || !uid) return;
   const s = await loadSettings(uid);
   if (S.view !== "rooms" || S.setUid !== uid) return;
-  if (!s) return (el.innerHTML = `<div class="empty">Einstellungen nicht verfügbar</div>`);
+  if (!s) return (el.innerHTML = `<div class="empty">${_("rooms.settings_unavailable")}</div>`);
   const sliders = Object.entries(s.eq).filter(([k]) => s.ranges[k]).map(([k, v]) => `<div class="setting">
-      <span>${EQ_LABELS[k] || k}</span>
-      <input type="range" min="${s.ranges[k][0]}" max="${s.ranges[k][1]}" value="${v}" data-setting="${k}" aria-label="${EQ_LABELS[k] || k}">
+      <span>${esc(eqLabel(k))}</span>
+      <input type="range" min="${s.ranges[k][0]}" max="${s.ranges[k][1]}" value="${v}" data-setting="${k}" aria-label="${esc(eqLabel(k))}">
       <span class="v" data-svlabel="${k}">${v > 0 && k !== "audio_delay" ? "+" + v : v}</span></div>`).join("");
-  const toggles = Object.entries(s.eq).filter(([k]) => !s.ranges[k]).map(([k, v]) => switchRow(EQ_LABELS[k] || k, k, v)).join("");
+  const toggles = Object.entries(s.eq).filter(([k]) => !s.ranges[k]).map(([k, v]) => switchRow(eqLabel(k), k, v)).join("");
   el.innerHTML = `<div class="cards">
-    <div class="card"><h4 style="margin-bottom:10px">Klang</h4>${sliders}${toggles}
-      <div style="margin-top:12px"><button class="btn" data-act="eqreset">Klang zurücksetzen</button></div></div>
-    <div class="card"><h4 style="margin-bottom:10px">Gerät</h4>
-      <div class="setting toggle-row"><span>Name</span><button class="btn" data-act="rename">${icon("edit")}${esc(s.name)}</button></div>
-      ${switchRow("Statusleuchte", "status_light", s.status_light)}
-      ${s.buttons_enabled !== null ? switchRow("Tasten am Gerät", "buttons_enabled", s.buttons_enabled) : ""}
-      ${s.battery ? `<div class="setting toggle-row"><span>Akku</span><span class="muted">${esc(s.battery.Level ?? "–")} % ${s.battery.PowerSource ? "· " + esc(s.battery.PowerSource) : ""}</span></div>` : ""}
+    <div class="card"><h4 style="margin-bottom:10px">${_("rooms.sound")}</h4>${sliders}${toggles}
+      <div style="margin-top:12px"><button class="btn" data-act="eqreset">${_("rooms.sound_reset")}</button></div></div>
+    <div class="card"><h4 style="margin-bottom:10px">${_("rooms.device")}</h4>
+      <div class="setting toggle-row"><span>${_("rooms.name")}</span><button class="btn" data-act="rename">${icon("edit")}${esc(s.name)}</button></div>
+      ${switchRow(_("rooms.status_light"), "status_light", s.status_light)}
+      ${s.buttons_enabled !== null ? switchRow(_("rooms.buttons"), "buttons_enabled", s.buttons_enabled) : ""}
+      ${s.battery ? `<div class="setting toggle-row"><span>${_("rooms.battery")}</span><span class="muted">${esc(s.battery.Level ?? "–")} % ${s.battery.PowerSource ? "· " + esc(s.battery.PowerSource) : ""}</span></div>` : ""}
       <dl class="info-grid" style="margin-top:14px">
-        <dt>Modell</dt><dd>${esc(s.model)}${s.model_number ? ` (${esc(s.model_number)})` : ""}</dd>
-        <dt>Software</dt><dd>${esc(s.version || "–")}</dd>
-        <dt>IP-Adresse</dt><dd>${esc(s.ip)}</dd>
+        <dt>${_("rooms.model")}</dt><dd>${esc(s.model)}${s.model_number ? ` (${esc(s.model_number)})` : ""}</dd>
+        <dt>${_("rooms.software")}</dt><dd>${esc(s.version || "–")}</dd>
+        <dt>${_("rooms.ip")}</dt><dd>${esc(s.ip)}</dd>
         <dt>MAC</dt><dd>${esc(s.mac || "–")}</dd>
-        <dt>Seriennummer</dt><dd>${esc(s.serial || "–")}</dd>
+        <dt>${_("rooms.serial")}</dt><dd>${esc(s.serial || "–")}</dd>
       </dl></div></div>`;
   paintRanges(el);
 }
@@ -894,21 +898,29 @@ async function renderServicesPanel() {
   const list = await loadServices();
   if (S.view !== "rooms") return;
   el.innerHTML = `<div class="card">
-    <div class="sub" style="margin-bottom:8px">Zum Durchsuchen verknüpft sich diese Oberfläche einmalig selbst mit dem Dienst – die Anmeldung der Lautsprecher und der Sonos-App bleibt unverändert.</div>
-    ${list.map((x) => `<div class="member"><span>${esc(x.name)} <span class="muted">· ${x.auth === "Anonymous" ? "ohne Anmeldung" : x.linked ? "verbunden" : "nicht verbunden"}</span></span>
+    <div class="sub" style="margin-bottom:8px">${_("svc.hint")}</div>
+    ${list.map((x) => `<div class="member"><span>${esc(x.name)} <span class="muted">· ${x.auth === "Anonymous" ? _("svc.anonymous") : x.linked ? _("svc.linked") : _("svc.not_linked")}</span></span>
       ${x.auth === "Anonymous" ? "" : x.linked
-        ? `<button class="btn" data-act="svcunlink" data-sid="${esc(x.sid)}" data-name="${esc(x.name)}">Trennen</button>`
-        : `<button class="btn primary" data-act="svclink" data-sid="${esc(x.sid)}" data-name="${esc(x.name)}">Verbinden</button>`}</div>`).join("") || '<div class="muted">Keine Musikdienste gefunden</div>'}
+        ? `<button class="btn" data-act="svcunlink" data-sid="${esc(x.sid)}" data-name="${esc(x.name)}">${_("svc.unlink")}</button>`
+        : `<button class="btn primary" data-act="svclink" data-sid="${esc(x.sid)}" data-name="${esc(x.name)}">${_("svc.link")}</button>`}</div>`).join("") || `<div class="muted">${_("svc.none")}</div>`}
   </div>`;
 }
 
 function renderSystemPanel() {
   const el = $("#systemPanel");
   if (!el || !S.system) return;
-  el.innerHTML = `<div class="card">${S.system.demo ? `<p class="muted" style="margin:0">Demo-Modus aktiv – es werden keine echten Lautsprecher gesteuert. Starte ohne <code>SONOS_DEMO=1</code>, um dein System zu verbinden.</p>` : `
-    <div class="sub" style="margin-bottom:8px">Gespeicherte Lautsprecher-Adressen (Einstiegspunkte für die Erkennung)</div>
-    ${S.system.hosts.map((h) => `<div class="member"><span>${esc(h)}</span><button class="icon-btn sm" data-act="rmhost" data-host="${esc(h)}" title="Entfernen">${icon("close")}</button></div>`).join("") || '<div class="muted">Automatische Erkennung</div>'}
-    <div class="head-row" style="margin:12px 0 0"><button class="btn" data-act="addhost">${icon("plus")}IP hinzufügen</button></div>`}</div>`;
+  el.innerHTML = `<div class="card">${S.system.demo ? `<p class="muted" style="margin:0">${_("system.demo")}</p>` : `
+    <div class="sub" style="margin-bottom:8px">${_("system.hosts")}</div>
+    ${S.system.hosts.map((h) => `<div class="member"><span>${esc(h)}</span><button class="icon-btn sm" data-act="rmhost" data-host="${esc(h)}" title="${_("common.remove")}">${icon("close")}</button></div>`).join("") || `<div class="muted">${_("system.auto")}</div>`}
+    <div class="head-row" style="margin:12px 0 0"><button class="btn" data-act="addhost">${icon("plus")}${_("system.add_ip")}</button></div>`}</div>`;
+}
+
+function renderLangPanel() {
+  const el = $("#langPanel");
+  if (!el) return;
+  el.innerHTML = `<div class="card">
+    <div class="chips">${I18N.languages.map((l) => `<button class="chip ${l.code === I18N.lang ? "active" : ""}" data-act="setlang" data-code="${esc(l.code)}">${esc(l.name)}</button>`).join("")}</div>
+    <div class="sub" style="margin-top:12px">${esc(_("system.language_hint"))}</div></div>`;
 }
 
 /* ---------------------------------------------------------------- Verbinden */
@@ -916,12 +928,12 @@ function viewConnect() {
   const el = $("#view");
   el._html = null;
   el.innerHTML = `<div class="connect">
-    <h1 class="title">Sonos verbinden</h1>
-    <p>Es wurde kein Sonos-System gefunden. Die automatische Erkennung funktioniert nur, wenn dieser Server im selben Netzwerk wie die Lautsprecher läuft (unter WSL/Docker oft blockiert).</p>
-    <p>Gib die IP-Adresse <b>eines</b> Lautsprechers ein – alle weiteren Räume werden darüber automatisch gefunden. Die IP findest du in der Sonos-App unter <i>Einstellungen › System › Über mein System</i>.</p>
-    <form class="line" id="hostForm"><input class="field" name="host" placeholder="z. B. 192.168.178.40" inputmode="decimal" required><button class="btn primary">Verbinden</button></form>
-    <p>Oder ein Netzwerk durchsuchen (dauert bis zu einer Minute):</p>
-    <form class="line" id="scanForm"><input class="field" name="network" placeholder="z. B. 192.168.178.0/24 (leer = eigenes Netz)"><button class="btn">Suchen</button></form>
+    <h1 class="title">${_("connect.title")}</h1>
+    <p>${_("connect.p1")}</p>
+    <p>${_("connect.p2")}</p>
+    <form class="line" id="hostForm"><input class="field" name="host" placeholder="${esc(_("connect.ip_placeholder"))}" inputmode="decimal" required><button class="btn primary">${_("connect.connect")}</button></form>
+    <p>${_("connect.p3")}</p>
+    <form class="line" id="scanForm"><input class="field" name="network" placeholder="${esc(_("connect.net_placeholder"))}"><button class="btn">${_("connect.search")}</button></form>
   </div>`;
 }
 
@@ -944,12 +956,12 @@ function itemMenu(el) {
   const pl = el.dataset.playlist;
   S.menuItem = { id, title: el.dataset.title };
   openMenu(el, `<div class="label ellipsis">${esc(el.dataset.title || "")}</div>
-    <button data-act="mplay" data-mode="replace">${icon("play")}Abspielen (Warteschlange ersetzen)</button>
-    <button data-act="mplay" data-mode="now">${icon("play")}Jetzt abspielen</button>
-    <button data-act="mplay" data-mode="next">${icon("nextup")}Als Nächstes abspielen</button>
-    <button data-act="mplay" data-mode="add">${icon("addq")}Zur Warteschlange hinzufügen</button>
-    ${id.startsWith("FV:") || id.startsWith("svc:") ? "" : `<button data-act="mtoplaylist">${icon("list")}Zu Playlist hinzufügen …</button>`}
-    ${pl ? `<hr><button data-act="plrename">${icon("edit")}Umbenennen</button><button data-act="pldelete">${icon("trash")}Playlist löschen</button>` : ""}`);
+    <button data-act="mplay" data-mode="replace">${icon("play")}${_("menu.replace")}</button>
+    <button data-act="mplay" data-mode="now">${icon("play")}${_("menu.now")}</button>
+    <button data-act="mplay" data-mode="next">${icon("nextup")}${_("menu.next")}</button>
+    <button data-act="mplay" data-mode="add">${icon("addq")}${_("menu.add")}</button>
+    ${id.startsWith("FV:") || id.startsWith("svc:") ? "" : `<button data-act="mtoplaylist">${icon("list")}${_("menu.to_playlist")}</button>`}
+    ${pl ? `<hr><button data-act="plrename">${icon("edit")}${_("menu.rename")}</button><button data-act="pldelete">${icon("trash")}${_("menu.delete_playlist")}</button>` : ""}`);
 }
 
 function dialog(html, onSubmit, onReady) {
@@ -966,20 +978,24 @@ function dialog(html, onSubmit, onReady) {
   onReady?.(form);
   paintRanges(d);
 }
-const cancelBtn = `<button class="btn" value="cancel" formnovalidate>Abbrechen</button>`;
+const cancelBtn = () => `<button class="btn" value="cancel" formnovalidate>${_("common.cancel")}</button>`;
 
 function promptDialog(title, label, value, submitLabel, fn) {
   dialog(`<h3>${esc(title)}</h3><label>${esc(label)}<input class="field" name="v" value="${esc(value || "")}" required autofocus></label>
-    <div class="dlg-actions">${cancelBtn}<button class="btn primary">${esc(submitLabel)}</button></div>`, (fd) => fn(String(fd.get("v")).trim()));
+    <div class="dlg-actions">${cancelBtn()}<button class="btn primary">${esc(submitLabel)}</button></div>`, (fd) => fn(String(fd.get("v")).trim()));
 }
 
 function groupDialog(coordUid) {
   const g = S.state.groups.find((x) => x.coordinator === coordUid);
   const all = S.state.groups.flatMap((x) => x.members).sort((a, b) => a.name.localeCompare(b.name));
-  dialog(`<h3>Gruppe: ${esc(g.name)}</h3><div class="muted" style="font-size:13px">Wähle die Räume, die gemeinsam spielen sollen.</div>
+  dialog(`<h3>${esc(_("group.title", { name: g.name }))}</h3><div class="muted" style="font-size:13px">${_("group.hint")}</div>
     <div class="check-list">${all.map((m) => `<label><input type="checkbox" name="m" value="${esc(m.uid)}" ${g.members.some((x) => x.uid === m.uid) ? "checked" : ""} ${m.uid === coordUid ? "disabled checked" : ""}>${esc(m.name)}</label>`).join("")}</div>
-    <div class="dlg-actions">${cancelBtn}<button class="btn primary">Übernehmen</button></div>`,
+    <div class="dlg-actions">${cancelBtn()}<button class="btn primary">${_("common.apply")}</button></div>`,
   (fd) => post(`/api/zones/${encodeURIComponent(coordUid)}/group`, { members: fd.getAll("m") }));
+}
+
+function durLabel(v) {
+  return { 60: _("dur.h1"), 90: _("dur.h15"), 120: _("dur.h2") }[v] || _("dur.min", { count: v });
 }
 
 async function alarmDialog(id) {
@@ -988,22 +1004,22 @@ async function alarmDialog(id) {
   const a = id ? S.alarms.find((x) => x.id === id) : { time: "07:00", uid: S.group.coordinator, recurrence: "WEEKDAYS", volume: 20, enabled: true, duration: 60, play_mode: "NORMAL", include_linked: false };
   const preset = ["DAILY", "WEEKDAYS", "WEEKENDS", "ONCE"].includes(a.recurrence) ? a.recurrence : "CUSTOM";
   const custom = a.recurrence.startsWith("ON_") ? a.recurrence.slice(3) : "12345";
-  dialog(`<h3>${id ? "Wecker bearbeiten" : "Neuer Wecker"}</h3>
-    <label>Uhrzeit<input class="field" type="time" name="time" value="${esc(a.time)}" required style="font-size:28px;font-weight:300"></label>
-    <label>Raum<select class="field" name="uid">${speakers.map((s) => `<option value="${esc(s.uid)}" ${s.uid === a.uid ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label>
-    <label>Wiederholung<select class="field" name="recurrence" id="recSel">
-      ${[["DAILY", "Täglich"], ["WEEKDAYS", "Werktags (Mo – Fr)"], ["WEEKENDS", "Wochenende"], ["ONCE", "Einmalig"], ["CUSTOM", "Bestimmte Tage"]].map(([v, n]) => `<option value="${v}" ${preset === v ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-    <div class="days" id="days" ${preset === "CUSTOM" ? "" : "hidden"}>${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-day="${d}" class="${custom.includes(String(d)) ? "active" : ""}">${DAYS[d]}</button>`).join("")}</div>
-    <label>Musik<select class="field" name="program_id">
-      ${id ? `<option value="keep" selected>Unverändert: ${esc(a.program)}</option>` : ""}
-      <option value="buzzer">Sonos-Klingelton</option>
+  dialog(`<h3>${id ? _("alarm.edit") : _("alarm.new")}</h3>
+    <label>${_("alarm.time")}<input class="field" type="time" name="time" value="${esc(a.time)}" required style="font-size:28px;font-weight:300"></label>
+    <label>${_("alarm.room")}<select class="field" name="uid">${speakers.map((s) => `<option value="${esc(s.uid)}" ${s.uid === a.uid ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label>
+    <label>${_("alarm.recurrence")}<select class="field" name="recurrence" id="recSel">
+      ${[["DAILY", _("alarm.daily")], ["WEEKDAYS", _("alarm.weekdays")], ["WEEKENDS", _("alarm.weekends")], ["ONCE", _("alarm.once")], ["CUSTOM", _("alarm.custom")]].map(([v, n]) => `<option value="${v}" ${preset === v ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+    <div class="days" id="days" ${preset === "CUSTOM" ? "" : "hidden"}>${[1, 2, 3, 4, 5, 6, 0].map((d) => `<button type="button" data-day="${d}" class="${custom.includes(String(d)) ? "active" : ""}">${esc(dayNames()[d])}</button>`).join("")}</div>
+    <label>${_("alarm.music")}<select class="field" name="program_id">
+      ${id ? `<option value="keep" selected>${esc(_("alarm.keep", { name: a.program || _("alarm.chime") }))}</option>` : ""}
+      <option value="buzzer">${_("alarm.chime")}</option>
       ${favs.map((f) => `<option value="${esc(f.id)}">${esc(f.title)}</option>`).join("")}</select></label>
-    <label>Lautstärke <span class="muted" id="avl">${a.volume}</span><input type="range" name="volume" min="0" max="100" value="${a.volume}"></label>
-    <label>Dauer<select class="field" name="duration">${[[0, "Bis zum Ausschalten"], [15, "15 Minuten"], [30, "30 Minuten"], [45, "45 Minuten"], [60, "1 Stunde"], [90, "1,5 Stunden"], [120, "2 Stunden"]].map(([v, n]) => `<option value="${v}" ${(a.duration || 0) === v ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-    <label>Wiedergabe<select class="field" name="play_mode">${[["NORMAL", "Normal"], ["SHUFFLE_NOREPEAT", "Zufällig"], ["REPEAT_ALL", "Wiederholen"], ["SHUFFLE", "Zufällig & wiederholen"]].map(([v, n]) => `<option value="${v}" ${a.play_mode === v ? "selected" : ""}>${n}</option>`).join("")}</select></label>
-    <label class="inline">Gruppierte Räume einbeziehen<span class="switch"><input type="checkbox" name="include_linked" ${a.include_linked ? "checked" : ""}><i></i></span></label>
-    <label class="inline">Aktiv<span class="switch"><input type="checkbox" name="enabled" ${a.enabled ? "checked" : ""}><i></i></span></label>
-    <div class="dlg-actions">${id ? `<button class="btn danger" value="delete" style="margin-right:auto">Löschen</button>` : ""}${cancelBtn}<button class="btn primary" value="save">Speichern</button></div>`,
+    <label>${_("alarm.volume")} <span class="muted" id="avl">${a.volume}</span><input type="range" name="volume" min="0" max="100" value="${a.volume}"></label>
+    <label>${_("alarm.duration")}<select class="field" name="duration">${[0, 15, 30, 45, 60, 90, 120].map((v) => [v, v ? durLabel(v) : _("alarm.until_off")]).map(([v, n]) => `<option value="${v}" ${(a.duration || 0) === v ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+    <label>${_("alarm.play_mode")}<select class="field" name="play_mode">${[["NORMAL", _("alarm.pm_normal")], ["SHUFFLE_NOREPEAT", _("alarm.pm_shuffle")], ["REPEAT_ALL", _("alarm.pm_repeat")], ["SHUFFLE", _("alarm.pm_shuffle_repeat")]].map(([v, n]) => `<option value="${v}" ${a.play_mode === v ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+    <label class="inline">${_("alarm.include_linked")}<span class="switch"><input type="checkbox" name="include_linked" ${a.include_linked ? "checked" : ""}><i></i></span></label>
+    <label class="inline">${_("alarm.active")}<span class="switch"><input type="checkbox" name="enabled" ${a.enabled ? "checked" : ""}><i></i></span></label>
+    <div class="dlg-actions">${id ? `<button class="btn danger" value="delete" style="margin-right:auto">${_("common.delete")}</button>` : ""}${cancelBtn()}<button class="btn primary" value="save">${_("common.save")}</button></div>`,
   async (fd, form, submitter) => {
     if (submitter?.value === "delete") {
       await api(`/api/alarms/${encodeURIComponent(id)}`, { method: "DELETE" });
@@ -1011,7 +1027,7 @@ async function alarmDialog(id) {
       let rec = fd.get("recurrence");
       if (rec === "CUSTOM") {
         const days = $$("#days .active", form).map((b) => b.dataset.day).sort().join("");
-        if (!days) throw new Error("Bitte mindestens einen Tag wählen");
+        if (!days) throw new Error(_("alarm.pick_day"));
         rec = `ON_${days}`;
       }
       const body = { time: fd.get("time"), uid: fd.get("uid"), recurrence: rec, program_id: fd.get("program_id"),
@@ -1045,10 +1061,10 @@ const ACTIONS = {
   repeat() { const g = S.group; const next = { off: "all", all: "one", one: "off" }[g.repeat]; act(() => zone("playmode", { shuffle: g.shuffle, repeat: next })); },
   crossfade() { act(() => zone("crossfade", { enabled: !S.group.crossfade })); },
   sleep(el) {
-    openMenu(el, `<div class="label">Sleep-Timer</div>${[[0, "Aus"], [15, "15 Minuten"], [30, "30 Minuten"], [45, "45 Minuten"], [60, "1 Stunde"], [90, "1,5 Stunden"], [120, "2 Stunden"]]
-      .map(([v, n]) => `<button data-act="setsleep" data-min="${v}">${icon("sleep")}${n}</button>`).join("")}`);
+    openMenu(el, `<div class="label">${_("sleep.label")}</div>${[0, 15, 30, 45, 60, 90, 120]
+      .map((v) => `<button data-act="setsleep" data-min="${v}">${icon("sleep")}${v ? durLabel(v) : _("sleep.off")}</button>`).join("")}`);
   },
-  setsleep(el) { closeMenu(); act(() => zone("sleep", { minutes: +el.dataset.min || null }), +el.dataset.min ? "Sleep-Timer gesetzt" : "Sleep-Timer aus"); },
+  setsleep(el) { closeMenu(); act(() => zone("sleep", { minutes: +el.dataset.min || null }), +el.dataset.min ? _("sleep.set") : _("sleep.cleared")); },
   source(el) { act(() => zone("source", { source: el.dataset.arg })); },
   mute(el) {
     const m = S.group.members.find((x) => x.uid === el.dataset.uid);
@@ -1067,42 +1083,43 @@ const ACTIONS = {
   },
   qplay(el, ev) { if (ev.target.closest(".actions")) return; act(() => zone("queue", { action: "play", index: +el.dataset.index })); },
   qremove(el) { act(async () => { await zone("queue", { action: "remove", index: +el.dataset.index }); loadQueue(); }); },
-  qclear() { if (confirm("Warteschlange wirklich leeren?")) act(async () => { await zone("queue", { action: "clear" }); loadQueue(); }); },
-  qsave() { promptDialog("Warteschlange speichern", "Name der Playlist", "", "Speichern", async (title) => { await zone("queue", { action: "save", title }); toast("Playlist gespeichert"); }); },
-  playitem(el) { act(() => zone("play-item", { id: el.dataset.id, mode: "replace", title: el.dataset.title || "" }), "Wird abgespielt"); },
+  qclear() { if (confirm(_("queue.clear_confirm"))) act(async () => { await zone("queue", { action: "clear" }); loadQueue(); }); },
+  qsave() { promptDialog(_("queue.save_title"), _("queue.save_name"), "", _("common.save"), async (title) => { await zone("queue", { action: "save", title }); toast(_("queue.saved")); }); },
+  playitem(el) { act(() => zone("play-item", { id: el.dataset.id, mode: "replace", title: el.dataset.title || "" }), _("toast.playing")); },
   itemmenu(el) { itemMenu(el); },
   async svclink(el) {
     const { sid, name } = el.dataset;
     let url;
     try { ({ url } = await post(`/api/zones/${enc(S.group.coordinator)}/services/${enc(sid)}/begin`)); } catch (e) { return toast(e.message); }
-    dialog(`<h3>${esc(name)} verbinden</h3>
-      <div class="muted" style="font-size:14px">1. Öffne den Link und melde dich bei ${esc(name)} an.<br>2. Komm zurück und klicke auf „Fertig“.</div>
-      <a class="btn primary" style="align-self:flex-start" href="${esc(url)}" target="_blank" rel="noopener">${esc(name)}-Anmeldung öffnen</a>
-      <div class="dlg-actions">${cancelBtn}<button class="btn primary">Fertig</button></div>`,
+    dialog(`<h3>${esc(_("svc.link_title", { name }))}</h3>
+      <div class="muted" style="font-size:14px">${_("svc.link_steps", { name: esc(name) })}</div>
+      <a class="btn primary" style="align-self:flex-start" href="${esc(url)}" target="_blank" rel="noopener">${esc(_("svc.open_login", { name }))}</a>
+      <div class="dlg-actions">${cancelBtn()}<button class="btn primary">${_("common.done")}</button></div>`,
     async () => {
       await post(`/api/zones/${enc(S.group.coordinator)}/services/${enc(sid)}/complete`);
-      toast(`${name} verbunden`);
+      toast(_("svc.linked_toast", { name }));
       S.services = null;
       renderServicesPanel();
     });
   },
   svcunlink(el) {
     const { sid, name } = el.dataset;
-    if (!confirm(`Verknüpfung mit ${name} entfernen? (Betrifft nur diese Oberfläche)`)) return;
-    act(async () => { await post(`/api/zones/${enc(S.group.coordinator)}/services/${enc(sid)}/unlink`); S.services = null; renderServicesPanel(); }, `${name} getrennt`);
+    if (!confirm(_("svc.unlink_confirm", { name }))) return;
+    act(async () => { await post(`/api/zones/${enc(S.group.coordinator)}/services/${enc(sid)}/unlink`); S.services = null; renderServicesPanel(); }, _("svc.unlinked_toast", { name }));
   },
-  unavailable(el) { toast(`„${el.dataset.title}“ ist ein Ordner bei einem Streamingdienst – nur in der Sonos-App zu öffnen`); },
-  mplay(el) { closeMenu(); const mode = el.dataset.mode; act(() => zone("play-item", { id: S.menuItem.id, mode, title: S.menuItem.title || "" }), { replace: "Wird abgespielt", now: "Wird abgespielt", next: "Wird als Nächstes gespielt", add: "Zur Warteschlange hinzugefügt" }[mode]); },
+  unavailable(el) { toast(_("fav.unavailable", { title: el.dataset.title })); },
+  setlang(el) { i18nSet(el.dataset.code); },
+  mplay(el) { closeMenu(); const mode = el.dataset.mode; act(() => zone("play-item", { id: S.menuItem.id, mode, title: S.menuItem.title || "" }), { replace: _("toast.playing"), now: _("toast.playing"), next: _("toast.next"), add: _("toast.added") }[mode]); },
   async mtoplaylist(el) {
     let pls = [];
     try { pls = await api(`/api/zones/${enc(S.group.coordinator)}/playlists`); } catch (e) { return toast(e.message); }
-    openMenu(el, `<div class="label">Zu Playlist hinzufügen</div>${pls.map((p) => `<button data-act="addtopl" data-pl="${esc(p.id)}">${icon("list")}${esc(p.title)}</button>`).join("") || '<div class="label">Keine Playlists vorhanden</div>'}`);
+    openMenu(el, `<div class="label">${_("menu.to_playlist_title")}</div>${pls.map((p) => `<button data-act="addtopl" data-pl="${esc(p.id)}">${icon("list")}${esc(p.title)}</button>`).join("") || `<div class="label">${_("menu.no_playlists")}</div>`}`);
   },
-  addtopl(el) { closeMenu(); act(() => post(`/api/zones/${enc(S.group.coordinator)}/playlist-add`, { playlist: el.dataset.pl, item: S.menuItem.id }), "Hinzugefügt"); },
+  addtopl(el) { closeMenu(); act(() => post(`/api/zones/${enc(S.group.coordinator)}/playlist-add`, { playlist: el.dataset.pl, item: S.menuItem.id }), _("toast.added_short")); },
   plrename() {
     closeMenu();
     const { id, title } = S.menuItem;
-    promptDialog("Playlist umbenennen", "Neuer Name", title, "Umbenennen", async (t) => {
+    promptDialog(_("pl.rename_title"), _("pl.new_name"), title, _("menu.rename"), async (t) => {
       await api(`/api/zones/${enc(S.group.coordinator)}/playlists/${enc(id)}`, { method: "PATCH", body: { title: t } });
       reloadContentView();
     });
@@ -1110,12 +1127,12 @@ const ACTIONS = {
   pldelete() {
     closeMenu();
     const { id, title } = S.menuItem;
-    if (!confirm(`Playlist „${title}“ löschen?`)) return;
+    if (!confirm(_("pl.delete_confirm", { title }))) return;
     act(async () => {
       await api(`/api/zones/${enc(S.group.coordinator)}/playlists/${enc(id)}`, { method: "DELETE" });
       if (S.view === "library") S.lib.stack = S.lib.stack.filter((s) => s.id !== id);
       reloadContentView();
-    }, "Playlist gelöscht");
+    }, _("pl.deleted"));
   },
   open(el) {
     const id = el.dataset.id;
@@ -1154,7 +1171,7 @@ const ACTIONS = {
   },
   fullscreen() {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    else document.documentElement.requestFullscreen?.().catch(() => toast("Vollbild wird hier nicht unterstützt"));
+    else document.documentElement.requestFullscreen?.().catch(() => toast(_("stage.fullscreen_unsupported")));
   },
   shelfedit() { S.shelfEdit = !S.shelfEdit; renderServiceHome(); },
   shelfreset() { saveShelfOrder([]); },
@@ -1166,16 +1183,16 @@ const ACTIONS = {
     saveShelfOrder(ids);
   },
   shelfscroll(el) { const s = el.closest(".shelf-sec").querySelector(".shelf"); s.scrollBy({ left: +el.dataset.dir * s.clientWidth * 0.8, behavior: "smooth" }); },
-  libupdate() { act(() => post(`/api/zones/${enc(S.group.coordinator)}/library-update`), "Bibliothek wird neu indiziert"); },
+  libupdate() { act(() => post(`/api/zones/${enc(S.group.coordinator)}/library-update`), _("lib.reindexing")); },
   alarmedit(el) { alarmDialog(el.dataset.id); },
   groupedit(el) { groupDialog(el.dataset.uid); },
   unjoin(el) { act(() => post(`/api/zones/${enc(el.dataset.uid)}/unjoin`)); },
-  party() { act(() => zone("party"), "Alle Räume verbunden"); },
-  ungroupall() { act(() => post("/api/ungroup-all"), "Alle Räume getrennt"); },
+  party() { act(() => zone("party"), _("rooms.partied")); },
+  ungroupall() { act(() => post("/api/ungroup-all"), _("rooms.ungrouped")); },
   setuid(el) { S.setUid = el.dataset.uid; $$("[data-act=setuid]").forEach((b) => b.classList.toggle("active", b === el)); renderSpeakerSettings(); },
   rename() {
     const s = S.settings[S.setUid];
-    promptDialog("Raum umbenennen", "Name", s.name, "Speichern", async (name) => {
+    promptDialog(_("rooms.rename_title"), _("rooms.name"), s.name, _("common.save"), async (name) => {
       await api(`/api/speakers/${enc(s.uid)}/settings`, { method: "PATCH", body: { name } });
       loadRooms();
     });
@@ -1185,10 +1202,10 @@ const ACTIONS = {
     const body = {};
     for (const k of ["bass", "treble", "balance"]) if (k in s.eq) body[k] = 0;
     if ("loudness" in s.eq) body.loudness = true;
-    act(async () => { await api(`/api/speakers/${enc(s.uid)}/settings`, { method: "PATCH", body }); renderSpeakerSettings(); }, "Klang zurückgesetzt");
+    act(async () => { await api(`/api/speakers/${enc(s.uid)}/settings`, { method: "PATCH", body }); renderSpeakerSettings(); }, _("rooms.sound_reset_done"));
   },
   addhost() {
-    promptDialog("Lautsprecher hinzufügen", "IP-Adresse", "", "Hinzufügen", async (host) => { await post("/api/system/hosts", { host }); loadRooms(); });
+    promptDialog(_("system.add_title"), _("rooms.ip"), "", _("common.add"), async (host) => { await post("/api/system/hosts", { host }); loadRooms(); });
   },
   rmhost(el) { act(async () => { await api(`/api/system/hosts/${enc(el.dataset.host)}`, { method: "DELETE" }); loadRooms(); }); },
 };
@@ -1267,14 +1284,14 @@ document.addEventListener("submit", async (e) => {
   if (e.target.id === "hostForm") {
     e.preventDefault();
     const host = new FormData(e.target).get("host").trim();
-    try { const r = await post("/api/system/hosts", { host }); toast(`Verbunden mit ${r.name || host}`); refreshSoon(0); } catch (x) { toast(x.message); }
+    try { const r = await post("/api/system/hosts", { host }); toast(_("connect.connected", { name: r.name || host })); refreshSoon(0); } catch (x) { toast(x.message); }
   } else if (e.target.id === "scanForm") {
     e.preventDefault();
     const btn = $("button", e.target);
-    btn.disabled = true; btn.textContent = "Suche läuft …";
-    try { const r = await post("/api/system/scan", { network: new FormData(e.target).get("network").trim() || null }); toast(r.found.length ? `${r.found.length} Lautsprecher gefunden` : "Keine Lautsprecher gefunden"); refreshSoon(0); }
+    btn.disabled = true; btn.textContent = _("connect.searching");
+    try { const r = await post("/api/system/scan", { network: new FormData(e.target).get("network").trim() || null }); toast(r.found.length ? _("connect.found", { count: r.found.length }) : _("connect.none")); refreshSoon(0); }
     catch (x) { toast(x.message); }
-    btn.disabled = false; btn.textContent = "Suchen";
+    btn.disabled = false; btn.textContent = _("connect.search");
   }
 });
 let searchTimer;
@@ -1356,7 +1373,7 @@ $("#sheetBackdrop").addEventListener("click", closeSheet);
 function paintThemeBtn() {
   const t = document.documentElement.dataset.theme || "auto";
   $("#themeBtn").innerHTML = icon({ auto: "auto", light: "sun", dark: "moon" }[t]);
-  $("#themeBtn").title = `Design: ${{ auto: "Automatisch", light: "Hell", dark: "Dunkel" }[t]}`;
+  $("#themeBtn").title = _("theme.title", { mode: _(`theme.${t}`) });
 }
 $("#themeBtn").addEventListener("click", () => {
   const next = { auto: "light", light: "dark", dark: "auto" }[document.documentElement.dataset.theme || "auto"];
@@ -1364,12 +1381,13 @@ $("#themeBtn").addEventListener("click", () => {
   store.set("theme", next);
   paintThemeBtn();
 });
-paintThemeBtn();
 
 document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshSoon(0); });
 
 /* Start */
 (async () => {
+  await i18nInit();
+  paintThemeBtn();
   try { S.system = await api("/api/system"); } catch {}
   try { S.prefs = await api("/api/prefs"); } catch { S.prefs = {}; }
   await poll();

@@ -1,0 +1,350 @@
+{
+  "_meta": { "name": "Deutsch" },
+
+  "common": {
+    "loading": "Lädt …",
+    "play": "Abspielen",
+    "more": "Mehr",
+    "options": "Optionen",
+    "remove": "Entfernen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "apply": "Übernehmen",
+    "add": "Hinzufügen",
+    "done": "Fertig",
+    "no_entries": "Keine Einträge",
+    "no_results": "Keine Treffer",
+    "tracks": { "one": "{count} Titel", "other": "{count} Titel" },
+    "entries": { "one": "{count} Eintrag", "other": "{count} Einträge" }
+  },
+
+  "tabs": {
+    "now": "Jetzt läuft",
+    "queue": "Warteschlange",
+    "favorites": "Favoriten",
+    "playlists": "Playlists",
+    "library": "Bibliothek",
+    "alarms": "Wecker",
+    "rooms": "Räume"
+  },
+
+  "sidebar": { "rooms": "Räume", "party": "Alle verbinden", "ungroup": "Alle trennen" },
+
+  "theme": { "title": "Design: {mode}", "auto": "Automatisch", "light": "Hell", "dark": "Dunkel" },
+
+  "status": { "not_connected": "Nicht verbunden", "unreachable": "Nicht erreichbar" },
+
+  "ctl": {
+    "shuffle": "Zufallswiedergabe",
+    "previous": "Zurück",
+    "next": "Weiter",
+    "play_pause": "Wiedergabe/Pause",
+    "repeat_off": "Wiederholen: aus",
+    "repeat_all": "Wiederholen: alle",
+    "repeat_one": "Wiederholen: einen Titel",
+    "mute": "Stumm",
+    "mute_group": "Gruppe stumm",
+    "volume": "Lautstärke",
+    "volume_of": "Lautstärke {name}",
+    "group_volume": "Gruppenlautstärke",
+    "position": "Position"
+  },
+
+  "source": {
+    "RADIO": "Radio",
+    "TV": "TV",
+    "LINE_IN": "Line-In",
+    "LIBRARY": "Musikbibliothek",
+    "SPOTIFY_CONNECT": "Spotify Connect",
+    "APPLE_MUSIC": "Apple Music",
+    "AIRPLAY": "AirPlay",
+    "WEB_FILE": "Stream",
+    "NONE": "",
+    "UNKNOWN": ""
+  },
+
+  "now": {
+    "no_music": "Keine Musik",
+    "no_rooms": "Keine Räume gefunden",
+    "pick_hint": "Wähle Favoriten, Playlists oder Musik aus der Bibliothek.",
+    "live": "Live",
+    "crossfade": "Crossfade",
+    "group": "Gruppieren",
+    "volume": "Lautstärke",
+    "group_label": "Gruppe"
+  },
+
+  "sleep": {
+    "label": "Sleep-Timer",
+    "remaining": "Sleep {time}",
+    "off": "Aus",
+    "set": "Sleep-Timer gesetzt",
+    "cleared": "Sleep-Timer aus"
+  },
+
+  "dur": {
+    "min": { "one": "{count} Minute", "other": "{count} Minuten" },
+    "h1": "1 Stunde",
+    "h15": "1,5 Stunden",
+    "h2": "2 Stunden"
+  },
+
+  "stage": {
+    "button": "Bühne",
+    "open_title": "Bühnen-Ansicht",
+    "open_hint": "Bühnen-Ansicht: großes Cover, Songtext, Interpret",
+    "lyrics": "Songtext",
+    "artist": "Interpret",
+    "up_next": "Als Nächstes",
+    "video": "Video",
+    "video_none": "Video · keins gefunden",
+    "video_title": "Musikvideo stumm mitlaufen lassen",
+    "video_mode_title": "Video im Hintergrund oder vorne zeigen",
+    "video_bg": "Hintergrund",
+    "video_front": "Vorne",
+    "offset_title": "Video gegenüber der Musik verschieben",
+    "open_youtube": "Bei YouTube öffnen",
+    "fullscreen": "Vollbild",
+    "fullscreen_unsupported": "Vollbild wird hier nicht unterstützt",
+    "close": "Zur klassischen Ansicht",
+    "youtube_unreachable": "YouTube nicht erreichbar",
+    "lyrics_no_source": "Kein Songtext für diese Quelle",
+    "lyrics_none": "Kein Songtext gefunden",
+    "instrumental": "♪ Instrumental",
+    "lyrics_source": "Songtext: {source}",
+    "artist_none": "Kein Interpret",
+    "artist_not_found": "Keine Infos zu {name} gefunden",
+    "read_more": "Weiterlesen bei {source}",
+    "queue_empty": "Nichts in der Warteschlange"
+  },
+
+  "queue": {
+    "title": "Warteschlange",
+    "save": "Als Playlist speichern",
+    "clear": "Leeren",
+    "drag": "Ziehen zum Verschieben",
+    "more": { "one": "… und {count} weiterer", "other": "… und {count} weitere" },
+    "empty": "Die Warteschlange ist leer.",
+    "clear_confirm": "Warteschlange wirklich leeren?",
+    "save_title": "Warteschlange speichern",
+    "save_name": "Name der Playlist",
+    "saved": "Playlist gespeichert"
+  },
+
+  "fav": {
+    "title": "Sonos-Favoriten",
+    "empty": "Noch keine Favoriten. Favoriten legst du in der Sonos-App an.",
+    "unavailable": "„{title}“ ist ein Ordner bei einem Musikdienst, der hier nicht verbunden ist – unter Räume › Musikdienste verbinden"
+  },
+
+  "pl": {
+    "title": "Sonos-Playlists",
+    "short": "Playlists",
+    "count": { "one": "{count} Playlist", "other": "{count} Playlists" },
+    "empty": "Keine Playlists. Speichere die Warteschlange als Playlist, um eine anzulegen.",
+    "rename_title": "Playlist umbenennen",
+    "new_name": "Neuer Name",
+    "delete_confirm": "Playlist „{title}“ löschen?",
+    "deleted": "Playlist gelöscht"
+  },
+
+  "lib": {
+    "title": "Musikbibliothek",
+    "playlist": "Playlist",
+    "service": "Musikdienst",
+    "artists": "Interpreten",
+    "albums": "Alben",
+    "tracks": "Titel",
+    "genres": "Genres",
+    "composers": "Komponisten",
+    "imported": "Importierte Playlists",
+    "folders": "Ordner",
+    "search_in": "In {name} suchen",
+    "reindex": "Bibliothek neu indizieren",
+    "reindexing": "Bibliothek wird neu indiziert",
+    "load_more": "Mehr laden ({shown} von {total})"
+  },
+
+  "shelf": {
+    "arrange": "Anordnen",
+    "hint": "Zeilen mit den Pfeilen verschieben",
+    "hint_drag": "Zeilen mit den Pfeilen oder per Ziehen verschieben",
+    "reset": "Standard",
+    "up": "Nach oben",
+    "down": "Nach unten"
+  },
+
+  "menu": {
+    "replace": "Abspielen (Warteschlange ersetzen)",
+    "now": "Jetzt abspielen",
+    "next": "Als Nächstes abspielen",
+    "add": "Zur Warteschlange hinzufügen",
+    "to_playlist": "Zu Playlist hinzufügen …",
+    "to_playlist_title": "Zu Playlist hinzufügen",
+    "no_playlists": "Keine Playlists vorhanden",
+    "rename": "Umbenennen",
+    "delete_playlist": "Playlist löschen"
+  },
+
+  "toast": {
+    "playing": "Wird abgespielt",
+    "next": "Wird als Nächstes gespielt",
+    "added": "Zur Warteschlange hinzugefügt",
+    "added_short": "Hinzugefügt"
+  },
+
+  "days": { "short": ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"] },
+
+  "alarm": {
+    "title": "Wecker",
+    "count": { "one": "{count} Wecker", "other": "{count} Wecker" },
+    "new": "Neuer Wecker",
+    "edit": "Wecker bearbeiten",
+    "empty": "Keine Wecker eingerichtet.",
+    "active": "Aktiv",
+    "chime": "Sonos-Klingelton",
+    "volume_n": "Lautstärke {n}",
+    "minutes": "{n} Min.",
+    "daily": "Täglich",
+    "weekdays_short": "Mo – Fr",
+    "weekends_short": "Sa, So",
+    "once": "Einmalig",
+    "weekdays": "Werktags (Mo – Fr)",
+    "weekends": "Wochenende",
+    "custom": "Bestimmte Tage",
+    "time": "Uhrzeit",
+    "room": "Raum",
+    "recurrence": "Wiederholung",
+    "music": "Musik",
+    "keep": "Unverändert: {name}",
+    "volume": "Lautstärke",
+    "duration": "Dauer",
+    "until_off": "Bis zum Ausschalten",
+    "play_mode": "Wiedergabe",
+    "pm_normal": "Normal",
+    "pm_shuffle": "Zufällig",
+    "pm_repeat": "Wiederholen",
+    "pm_shuffle_repeat": "Zufällig & wiederholen",
+    "include_linked": "Gruppierte Räume einbeziehen",
+    "pick_day": "Bitte mindestens einen Tag wählen"
+  },
+
+  "rooms": {
+    "title": "Räume",
+    "speakers": { "one": "{count} Lautsprecher", "other": "{count} Lautsprecher" },
+    "party": "Alle verbinden",
+    "ungroup_all": "Alle trennen",
+    "partied": "Alle Räume verbunden",
+    "ungrouped": "Alle Räume getrennt",
+    "groups": "Gruppen",
+    "coordinator": "· Koordinator",
+    "unjoin": "Aus Gruppe lösen",
+    "speaker_settings": "Lautsprecher-Einstellungen",
+    "services": "Musikdienste",
+    "system": "System",
+    "language": "Sprache",
+    "settings_unavailable": "Einstellungen nicht verfügbar",
+    "sound": "Klang",
+    "sound_reset": "Klang zurücksetzen",
+    "sound_reset_done": "Klang zurückgesetzt",
+    "device": "Gerät",
+    "name": "Name",
+    "status_light": "Statusleuchte",
+    "buttons": "Tasten am Gerät",
+    "battery": "Akku",
+    "model": "Modell",
+    "software": "Software",
+    "ip": "IP-Adresse",
+    "serial": "Seriennummer",
+    "rename_title": "Raum umbenennen"
+  },
+
+  "eq": {
+    "bass": "Bässe",
+    "treble": "Höhen",
+    "balance": "Balance",
+    "loudness": "Loudness",
+    "night_mode": "Nachtmodus",
+    "dialog_mode": "Sprachverbesserung",
+    "sub_enabled": "Subwoofer",
+    "sub_gain": "Subwoofer-Pegel",
+    "surround_enabled": "Surround",
+    "surround_level": "Surround-Pegel (TV)",
+    "music_surround_level": "Surround-Pegel (Musik)",
+    "surround_full_volume_enabled": "Surround volle Lautstärke",
+    "audio_delay": "Lippensynchronität",
+    "trueplay": "Trueplay"
+  },
+
+  "group": {
+    "title": "Gruppe: {name}",
+    "hint": "Wähle die Räume, die gemeinsam spielen sollen."
+  },
+
+  "svc": {
+    "hint": "Zum Durchsuchen verknüpft sich diese Oberfläche einmalig selbst mit dem Dienst – die Anmeldung der Lautsprecher und der Sonos-App bleibt unverändert.",
+    "anonymous": "ohne Anmeldung",
+    "linked": "verbunden",
+    "not_linked": "nicht verbunden",
+    "link": "Verbinden",
+    "unlink": "Trennen",
+    "none": "Keine Musikdienste gefunden",
+    "link_title": "{name} verbinden",
+    "link_steps": "1. Öffne den Link und melde dich bei {name} an.<br>2. Komm zurück und klicke auf „Fertig“.",
+    "open_login": "{name}-Anmeldung öffnen",
+    "linked_toast": "{name} verbunden",
+    "unlink_confirm": "Verknüpfung mit {name} entfernen? (Betrifft nur diese Oberfläche)",
+    "unlinked_toast": "{name} getrennt"
+  },
+
+  "system": {
+    "demo": "Demo-Modus aktiv – es werden keine echten Lautsprecher gesteuert. Starte ohne <code>SONOS_DEMO=1</code>, um dein System zu verbinden.",
+    "hosts": "Gespeicherte Lautsprecher-Adressen (Einstiegspunkte für die Erkennung)",
+    "auto": "Automatische Erkennung",
+    "add_ip": "IP hinzufügen",
+    "add_title": "Lautsprecher hinzufügen",
+    "language_hint": "Gilt für dieses Gerät. Weitere Sprachen als Datei in static/i18n/ ergänzen."
+  },
+
+  "connect": {
+    "title": "Sonos verbinden",
+    "p1": "Es wurde kein Sonos-System gefunden. Die automatische Erkennung funktioniert nur, wenn dieser Server im selben Netzwerk wie die Lautsprecher läuft (unter WSL/Docker oft blockiert).",
+    "p2": "Gib die IP-Adresse <b>eines</b> Lautsprechers ein – alle weiteren Räume werden darüber automatisch gefunden. Die IP findest du in der Sonos-App unter <i>Einstellungen › System › Über mein System</i>.",
+    "ip_placeholder": "z. B. 192.168.178.40",
+    "connect": "Verbinden",
+    "p3": "Oder ein Netzwerk durchsuchen (dauert bis zu einer Minute):",
+    "net_placeholder": "z. B. 192.168.178.0/24 (leer = eigenes Netz)",
+    "search": "Suchen",
+    "searching": "Suche läuft …",
+    "found": { "one": "{count} Lautsprecher gefunden", "other": "{count} Lautsprecher gefunden" },
+    "none": "Keine Lautsprecher gefunden",
+    "connected": "Verbunden mit {name}"
+  },
+
+  "err": {
+    "http": "Fehler {status}",
+    "not_connected": "Kein Sonos-System erreichbar",
+    "speaker_unknown": "Lautsprecher unbekannt",
+    "item_not_found": "Eintrag nicht gefunden",
+    "item_not_playable": "Dieser Eintrag ist nicht abspielbar",
+    "favorite_not_found": "Favorit nicht gefunden",
+    "favorite_folder": "„{title}“ ist ein Ordner bei einem Musikdienst, der hier nicht verbunden ist",
+    "playlist_not_found": "Playlist nicht gefunden",
+    "alarm_not_found": "Wecker nicht gefunden",
+    "invalid_recurrence": "Ungültige Wiederholung",
+    "invalid_ip": "Bitte eine gültige IP-Adresse eingeben",
+    "unknown_setting": "Unbekannte Einstellung: {key}",
+    "service_unknown": "Musikdienst unbekannt",
+    "service_not_linked": "{name} ist noch nicht verbunden – unter Räume › Musikdienste verbinden",
+    "link_not_started": "Bitte zuerst die Verknüpfung starten",
+    "link_not_confirmed": "Noch nicht bestätigt – bitte zuerst im Browser anmelden",
+    "demo_unavailable": "Im Demo-Modus nicht verfügbar",
+    "art_forbidden": "Nur Bilder vom Lautsprecher erlaubt",
+    "unknown_action": "Unbekannte Aktion",
+    "speaker_unreachable": "Lautsprecher nicht erreichbar",
+    "rejected": "Sonos lehnt die Aktion ab ({code})",
+    "internal": "Interner Fehler"
+  }
+}

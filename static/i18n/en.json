@@ -1,0 +1,350 @@
+{
+  "_meta": { "name": "English" },
+
+  "common": {
+    "loading": "Loading …",
+    "play": "Play",
+    "more": "More",
+    "options": "Options",
+    "remove": "Remove",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "apply": "Apply",
+    "add": "Add",
+    "done": "Done",
+    "no_entries": "Nothing here",
+    "no_results": "No results",
+    "tracks": { "one": "{count} track", "other": "{count} tracks" },
+    "entries": { "one": "{count} item", "other": "{count} items" }
+  },
+
+  "tabs": {
+    "now": "Now playing",
+    "queue": "Queue",
+    "favorites": "Favorites",
+    "playlists": "Playlists",
+    "library": "Library",
+    "alarms": "Alarms",
+    "rooms": "Rooms"
+  },
+
+  "sidebar": { "rooms": "Rooms", "party": "Group all", "ungroup": "Ungroup all" },
+
+  "theme": { "title": "Theme: {mode}", "auto": "Automatic", "light": "Light", "dark": "Dark" },
+
+  "status": { "not_connected": "Not connected", "unreachable": "Not reachable" },
+
+  "ctl": {
+    "shuffle": "Shuffle",
+    "previous": "Previous",
+    "next": "Next",
+    "play_pause": "Play/pause",
+    "repeat_off": "Repeat: off",
+    "repeat_all": "Repeat: all",
+    "repeat_one": "Repeat: one track",
+    "mute": "Mute",
+    "mute_group": "Mute group",
+    "volume": "Volume",
+    "volume_of": "Volume {name}",
+    "group_volume": "Group volume",
+    "position": "Position"
+  },
+
+  "source": {
+    "RADIO": "Radio",
+    "TV": "TV",
+    "LINE_IN": "Line-in",
+    "LIBRARY": "Music library",
+    "SPOTIFY_CONNECT": "Spotify Connect",
+    "APPLE_MUSIC": "Apple Music",
+    "AIRPLAY": "AirPlay",
+    "WEB_FILE": "Stream",
+    "NONE": "",
+    "UNKNOWN": ""
+  },
+
+  "now": {
+    "no_music": "No music",
+    "no_rooms": "No rooms found",
+    "pick_hint": "Pick favorites, playlists or music from the library.",
+    "live": "Live",
+    "crossfade": "Crossfade",
+    "group": "Group",
+    "volume": "Volume",
+    "group_label": "Group"
+  },
+
+  "sleep": {
+    "label": "Sleep timer",
+    "remaining": "Sleep {time}",
+    "off": "Off",
+    "set": "Sleep timer set",
+    "cleared": "Sleep timer off"
+  },
+
+  "dur": {
+    "min": { "one": "{count} minute", "other": "{count} minutes" },
+    "h1": "1 hour",
+    "h15": "1.5 hours",
+    "h2": "2 hours"
+  },
+
+  "stage": {
+    "button": "Stage",
+    "open_title": "Stage view",
+    "open_hint": "Stage view: large cover, lyrics, artist info",
+    "lyrics": "Lyrics",
+    "artist": "Artist",
+    "up_next": "Up next",
+    "video": "Video",
+    "video_none": "Video · none found",
+    "video_title": "Play the music video muted alongside",
+    "video_mode_title": "Show the video in the background or up front",
+    "video_bg": "Background",
+    "video_front": "Front",
+    "offset_title": "Shift the video relative to the music",
+    "open_youtube": "Open on YouTube",
+    "fullscreen": "Full screen",
+    "fullscreen_unsupported": "Full screen is not supported here",
+    "close": "Back to the classic view",
+    "youtube_unreachable": "YouTube not reachable",
+    "lyrics_no_source": "No lyrics for this source",
+    "lyrics_none": "No lyrics found",
+    "instrumental": "♪ Instrumental",
+    "lyrics_source": "Lyrics: {source}",
+    "artist_none": "No artist",
+    "artist_not_found": "No info found for {name}",
+    "read_more": "Read more on {source}",
+    "queue_empty": "Nothing in the queue"
+  },
+
+  "queue": {
+    "title": "Queue",
+    "save": "Save as playlist",
+    "clear": "Clear",
+    "drag": "Drag to reorder",
+    "more": { "one": "… and {count} more", "other": "… and {count} more" },
+    "empty": "The queue is empty.",
+    "clear_confirm": "Really clear the queue?",
+    "save_title": "Save queue",
+    "save_name": "Playlist name",
+    "saved": "Playlist saved"
+  },
+
+  "fav": {
+    "title": "Sonos favorites",
+    "empty": "No favorites yet. Add favorites in the Sonos app.",
+    "unavailable": "“{title}” is a folder of a music service that is not linked here – link it under Rooms › Music services"
+  },
+
+  "pl": {
+    "title": "Sonos playlists",
+    "short": "Playlists",
+    "count": { "one": "{count} playlist", "other": "{count} playlists" },
+    "empty": "No playlists. Save the queue as a playlist to create one.",
+    "rename_title": "Rename playlist",
+    "new_name": "New name",
+    "delete_confirm": "Delete playlist “{title}”?",
+    "deleted": "Playlist deleted"
+  },
+
+  "lib": {
+    "title": "Music library",
+    "playlist": "Playlist",
+    "service": "Music service",
+    "artists": "Artists",
+    "albums": "Albums",
+    "tracks": "Tracks",
+    "genres": "Genres",
+    "composers": "Composers",
+    "imported": "Imported playlists",
+    "folders": "Folders",
+    "search_in": "Search {name}",
+    "reindex": "Re-index music library",
+    "reindexing": "Music library is being re-indexed",
+    "load_more": "Load more ({shown} of {total})"
+  },
+
+  "shelf": {
+    "arrange": "Arrange",
+    "hint": "Move rows with the arrows",
+    "hint_drag": "Move rows with the arrows or by dragging",
+    "reset": "Default",
+    "up": "Move up",
+    "down": "Move down"
+  },
+
+  "menu": {
+    "replace": "Play (replace queue)",
+    "now": "Play now",
+    "next": "Play next",
+    "add": "Add to queue",
+    "to_playlist": "Add to playlist …",
+    "to_playlist_title": "Add to playlist",
+    "no_playlists": "No playlists yet",
+    "rename": "Rename",
+    "delete_playlist": "Delete playlist"
+  },
+
+  "toast": {
+    "playing": "Playing",
+    "next": "Playing next",
+    "added": "Added to queue",
+    "added_short": "Added"
+  },
+
+  "days": { "short": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] },
+
+  "alarm": {
+    "title": "Alarms",
+    "count": { "one": "{count} alarm", "other": "{count} alarms" },
+    "new": "New alarm",
+    "edit": "Edit alarm",
+    "empty": "No alarms set up.",
+    "active": "Active",
+    "chime": "Sonos chime",
+    "volume_n": "Volume {n}",
+    "minutes": "{n} min",
+    "daily": "Daily",
+    "weekdays_short": "Mon – Fri",
+    "weekends_short": "Sat, Sun",
+    "once": "Once",
+    "weekdays": "Weekdays (Mon – Fri)",
+    "weekends": "Weekends",
+    "custom": "Specific days",
+    "time": "Time",
+    "room": "Room",
+    "recurrence": "Repeat",
+    "music": "Music",
+    "keep": "Unchanged: {name}",
+    "volume": "Volume",
+    "duration": "Duration",
+    "until_off": "Until turned off",
+    "play_mode": "Playback",
+    "pm_normal": "Normal",
+    "pm_shuffle": "Shuffle",
+    "pm_repeat": "Repeat",
+    "pm_shuffle_repeat": "Shuffle & repeat",
+    "include_linked": "Include grouped rooms",
+    "pick_day": "Please pick at least one day"
+  },
+
+  "rooms": {
+    "title": "Rooms",
+    "speakers": { "one": "{count} speaker", "other": "{count} speakers" },
+    "party": "Group all",
+    "ungroup_all": "Ungroup all",
+    "partied": "All rooms grouped",
+    "ungrouped": "All rooms ungrouped",
+    "groups": "Groups",
+    "coordinator": "· Coordinator",
+    "unjoin": "Remove from group",
+    "speaker_settings": "Speaker settings",
+    "services": "Music services",
+    "system": "System",
+    "language": "Language",
+    "settings_unavailable": "Settings not available",
+    "sound": "Sound",
+    "sound_reset": "Reset sound",
+    "sound_reset_done": "Sound reset",
+    "device": "Device",
+    "name": "Name",
+    "status_light": "Status light",
+    "buttons": "Buttons on the device",
+    "battery": "Battery",
+    "model": "Model",
+    "software": "Software",
+    "ip": "IP address",
+    "serial": "Serial number",
+    "rename_title": "Rename room"
+  },
+
+  "eq": {
+    "bass": "Bass",
+    "treble": "Treble",
+    "balance": "Balance",
+    "loudness": "Loudness",
+    "night_mode": "Night mode",
+    "dialog_mode": "Speech enhancement",
+    "sub_enabled": "Subwoofer",
+    "sub_gain": "Subwoofer level",
+    "surround_enabled": "Surround",
+    "surround_level": "Surround level (TV)",
+    "music_surround_level": "Surround level (music)",
+    "surround_full_volume_enabled": "Surround full volume",
+    "audio_delay": "Lip sync",
+    "trueplay": "Trueplay"
+  },
+
+  "group": {
+    "title": "Group: {name}",
+    "hint": "Pick the rooms that should play together."
+  },
+
+  "svc": {
+    "hint": "To browse, this interface links itself to the service once – the sign-in of your speakers and the Sonos app stays unchanged.",
+    "anonymous": "no sign-in needed",
+    "linked": "linked",
+    "not_linked": "not linked",
+    "link": "Link",
+    "unlink": "Unlink",
+    "none": "No music services found",
+    "link_title": "Link {name}",
+    "link_steps": "1. Open the link and sign in to {name}.<br>2. Come back and click “Done”.",
+    "open_login": "Open {name} sign-in",
+    "linked_toast": "{name} linked",
+    "unlink_confirm": "Remove the link to {name}? (Only affects this interface)",
+    "unlinked_toast": "{name} unlinked"
+  },
+
+  "system": {
+    "demo": "Demo mode – no real speakers are controlled. Start without <code>SONOS_DEMO=1</code> to connect your system.",
+    "hosts": "Saved speaker addresses (entry points for discovery)",
+    "auto": "Automatic discovery",
+    "add_ip": "Add IP",
+    "add_title": "Add speaker",
+    "language_hint": "Applies to this device. Add more languages as files in static/i18n/."
+  },
+
+  "connect": {
+    "title": "Connect Sonos",
+    "p1": "No Sonos system was found. Automatic discovery only works when this server runs on the same network as the speakers (often blocked under WSL/Docker).",
+    "p2": "Enter the IP address of <b>one</b> speaker – all other rooms are found through it. You can find the IP in the Sonos app under <i>Settings › System › About my system</i>.",
+    "ip_placeholder": "e.g. 192.168.178.40",
+    "connect": "Connect",
+    "p3": "Or scan a network (takes up to a minute):",
+    "net_placeholder": "e.g. 192.168.178.0/24 (empty = own network)",
+    "search": "Scan",
+    "searching": "Scanning …",
+    "found": { "one": "{count} speaker found", "other": "{count} speakers found" },
+    "none": "No speakers found",
+    "connected": "Connected to {name}"
+  },
+
+  "err": {
+    "http": "Error {status}",
+    "not_connected": "No Sonos system reachable",
+    "speaker_unknown": "Unknown speaker",
+    "item_not_found": "Item not found",
+    "item_not_playable": "This item cannot be played",
+    "favorite_not_found": "Favorite not found",
+    "favorite_folder": "“{title}” is a folder of a music service that is not linked here",
+    "playlist_not_found": "Playlist not found",
+    "alarm_not_found": "Alarm not found",
+    "invalid_recurrence": "Invalid recurrence",
+    "invalid_ip": "Please enter a valid IP address",
+    "unknown_setting": "Unknown setting: {key}",
+    "service_unknown": "Unknown music service",
+    "service_not_linked": "{name} is not linked yet – link it under Rooms › Music services",
+    "link_not_started": "Please start linking first",
+    "link_not_confirmed": "Not confirmed yet – please sign in in your browser first",
+    "demo_unavailable": "Not available in demo mode",
+    "art_forbidden": "Only images from your speakers are allowed",
+    "unknown_action": "Unknown action",
+    "speaker_unreachable": "Speaker not reachable",
+    "rejected": "Sonos rejected the action ({code})",
+    "internal": "Internal error"
+  }
+}

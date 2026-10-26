@@ -20,6 +20,7 @@ from soco.data_structures_entry import from_didl_string
 from soco.discovery import scan_network
 from soco.exceptions import SoCoUPnPException
 
+from .errors import AppError
 from .music_services import ServiceHub
 
 log = logging.getLogger("sonos")
@@ -46,8 +47,9 @@ EQ_BOOL = ("loudness", "night_mode", "dialog_mode", "sub_enabled", "surround_ena
            "surround_full_volume_enabled", "trueplay")
 
 
-class NotConnected(Exception):
-    pass
+class NotConnected(AppError):
+    def __init__(self) -> None:
+        super().__init__("not_connected", 503)
 
 
 def _time_to_sec(value: str | None) -> int:
@@ -127,7 +129,7 @@ class SonosService:
         try:
             ipaddress.ip_address(host)
         except ValueError:
-            raise ValueError("Bitte eine gültige IP-Adresse eingeben") from None
+            raise AppError("invalid_ip") from None
         info = SoCo(host).get_speaker_info(refresh=True, timeout=4)
         hosts = self.config.setdefault("hosts", [])
         if host not in hosts:
@@ -166,10 +168,10 @@ class SonosService:
     def _dev(self, uid: str) -> SoCo:
         zones = self._refresh_zones()
         if not zones:
-            raise NotConnected("Kein Sonos-System erreichbar")
+            raise NotConnected()
         dev = zones.get(uid) or self._refresh_zones(force=True).get(uid)
         if dev is None:
-            raise KeyError(f"Lautsprecher {uid} unbekannt")
+            raise AppError("speaker_unknown", 404)
         return dev
 
     def _coord(self, uid: str) -> SoCo:
@@ -242,7 +244,7 @@ class SonosService:
             if source in ("TV", "LINE_IN"):
                 # Sonos liefert hier nur die Geräte-ID als „Sender“
                 owner = next((m["name"] for m in mstate if m["uid"] in (track.get("uri") or "")), c.player_name)
-                title = "Fernseher" if source == "TV" else "Line-In"
+                title = ""  # die Oberfläche zeigt „TV“ bzw. „Line-In“ in der gewählten Sprache
                 artist = owner
             elif source in ("RADIO", "WEB_FILE") or media.get("channel"):
                 station = media.get("channel") or title
@@ -435,10 +437,9 @@ class SonosService:
     def _play_favorite(self, c: SoCo, fav_id: str, mode: str) -> None:
         fav = next((f for f in c.music_library.get_sonos_favorites() if f.item_id == fav_id), None)
         if fav is None:
-            raise KeyError("Favorit nicht gefunden")
+            raise AppError("favorite_not_found", 404)
         if not fav.resources:
-            raise ValueError(f"„{fav.title}“ ist ein Ordner bei einem Streamingdienst und lässt sich "
-                             "nur in der Sonos-App öffnen")
+            raise AppError("favorite_folder", title=fav.title)
         uri = fav.resources[0].uri
         meta = fav.resource_meta_data
         ref_class = getattr(getattr(fav, "reference", None), "item_class", "") or ""
@@ -479,10 +480,10 @@ class SonosService:
             return self._play_favorite(c, item_id, mode)
         items, _ = self._browse_raw(c, item_id, "BrowseMetadata", 0, 1)
         if not items:
-            raise KeyError("Eintrag nicht gefunden")
+            raise AppError("item_not_found", 404)
         item: DidlObject = items[0]
         if not item.resources:
-            raise ValueError("Dieser Eintrag ist nicht abspielbar")
+            raise AppError("item_not_playable")
         uri = item.resources[0].uri
         if uri.startswith(STREAM_PREFIXES) or "audioBroadcast" in item.item_class:
             c.play_uri(uri, to_didl_string(item))
@@ -535,7 +536,7 @@ class SonosService:
         for item in items:
             hit = self._covers.get(item["id"])
             if hit and time.time() - hit[0] < 600:
-                item.update(arts=hit[1], art=hit[1][0] if hit[1] else None, subtitle=f"{hit[2]} Titel")
+                item.update(arts=hit[1], art=hit[1][0] if hit[1] else None, subtitle="", count=hit[2])
             else:
                 # Cover im Hintergrund suchen (erste Suche dauert), das Frontend lädt nach
                 item["covers_pending"] = True
@@ -596,7 +597,7 @@ class SonosService:
         dev = self._dev(uid)
         pl = next((p for p in dev.get_sonos_playlists() if p.item_id == playlist_id), None)
         if pl is None:
-            raise KeyError("Playlist nicht gefunden")
+            raise AppError("playlist_not_found", 404)
         dev.remove_sonos_playlist(pl)
 
     def rename_playlist(self, uid: str, playlist_id: str, title: str) -> None:
@@ -604,7 +605,7 @@ class SonosService:
         dev = self._dev(uid)
         pl = next((p for p in dev.get_sonos_playlists() if p.item_id == playlist_id), None)
         if pl is None:
-            raise KeyError("Playlist nicht gefunden")
+            raise AppError("playlist_not_found", 404)
         dev.contentDirectory.UpdateObject([
             ("ObjectID", playlist_id),
             ("CurrentTagValue", f"<dc:title>{pl.title}</dc:title>"),
@@ -617,7 +618,7 @@ class SonosService:
         pl = next((p for p in dev.get_sonos_playlists() if p.item_id == playlist_id), None)
         items, _ = self._browse_raw(dev, item_id, "BrowseMetadata", 0, 1)
         if pl is None or not items:
-            raise KeyError("Playlist oder Eintrag nicht gefunden")
+            raise AppError("item_not_found", 404)
         dev.add_item_to_sonos_playlist(items[0], pl)
 
     def library_update(self, uid: str) -> None:
@@ -679,13 +680,13 @@ class SonosService:
                 dev.player_name = str(val).strip()[:40]
                 self._zones_at = 0
             else:
-                raise ValueError(f"Unbekannte Einstellung: {key}")
+                raise AppError("unknown_setting", key=key)
 
     # ------------------------------------------------------------------ Wecker
     def alarms(self) -> list[dict]:
         zones = self._refresh_zones()
         if not zones:
-            raise NotConnected("Kein Sonos-System erreichbar")
+            raise NotConnected()
         out = []
         for a in alarms.get_alarms(next(iter(zones.values()))):
             if a.zone is None:
@@ -704,19 +705,19 @@ class SonosService:
     @staticmethod
     def _alarm_program_title(a) -> str:
         if not a.program_uri or a.program_uri == "x-rincon-buzzer:0":
-            return "Sonos-Klingelton"
+            return ""  # Sonos-Klingelton, übersetzt die Oberfläche
         try:
             items = from_didl_string(a.program_metadata)
-            return items[0].title if items else "Musik"
+            return items[0].title if items else "♪"
         except Exception:  # noqa: BLE001
-            return "Musik"
+            return "♪"
 
     def save_alarm(self, data: dict, alarm_id: str | None = None) -> None:
         dev = self._dev(data["uid"])
         if alarm_id:
             a = next((x for x in alarms.get_alarms(dev) if x.alarm_id == alarm_id), None)
             if a is None:
-                raise KeyError("Wecker nicht gefunden")
+                raise AppError("alarm_not_found", 404)
             a.zone = dev
         else:
             a = alarms.Alarm(dev)
@@ -726,7 +727,7 @@ class SonosService:
         a.duration = dt.time(dur // 60, dur % 60) if dur else None
         rec = data.get("recurrence", "DAILY")
         if rec not in RECURRENCES and not (rec.startswith("ON_") and rec[3:].isdigit()):
-            raise ValueError("Ungültige Wiederholung")
+            raise AppError("invalid_recurrence")
         a.recurrence = rec
         a.enabled = bool(data.get("enabled", True))
         a.volume = max(0, min(100, int(data.get("volume", 20))))
@@ -738,7 +739,7 @@ class SonosService:
         elif program and program != "buzzer":
             fav = next((f for f in dev.music_library.get_sonos_favorites() if f.item_id == program), None)
             if fav is None:
-                raise KeyError("Favorit nicht gefunden")
+                raise AppError("favorite_not_found", 404)
             a.program_uri = fav.resources[0].uri
             a.program_metadata = fav.resource_meta_data
         else:
@@ -749,5 +750,5 @@ class SonosService:
     def delete_alarm(self, alarm_id: str) -> None:
         zones = self._refresh_zones()
         if not zones:
-            raise NotConnected("Kein Sonos-System erreichbar")
+            raise NotConnected()
         alarms.remove_alarm_by_id(next(iter(zones.values())), alarm_id)

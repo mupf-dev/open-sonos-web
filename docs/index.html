@@ -262,7 +262,7 @@ docker compose up -d</code></pre>
             <pre><code>http://localhost:8080</code></pre>
           </div>
         </div>
-        <p class="sub" style="margin-top:28px;margin-bottom:0">Just want to look around? <code>./run.sh --demo</code> starts a simulated system with four rooms – exactly like on this page. Note: the interface itself is currently in German.</p>
+        <p class="sub" style="margin-top:28px;margin-bottom:0">Just want to look around? <code>./run.sh --demo</code> starts a simulated system with four rooms – exactly like on this page.</p>
       </div>
     </section>
 
@@ -274,6 +274,8 @@ docker compose up -d</code></pre>
           <div class="note"><h3>Local, no login</h3><p>Anyone who can reach the page on your network can control the speakers – just like the Sonos app. Do not expose it to the internet.</p></div>
           <div class="note"><h3>External services</h3><p>For lyrics, artist info and videos, artist and title are sent to LRCLIB, Wikipedia and YouTube – only in the stage view.</p></div>
           <div class="note"><h3>Music services</h3><p>To browse, the interface links itself to the service once. Your speakers' own sign-in stays untouched.</p></div>
+          <div class="note"><h3>Your language</h3><p>English and German are built in and follow your browser. Another language is just one JSON file – see <a href="https://github.com/mupf-dev/sonos-web/blob/main/TRANSLATING.md">TRANSLATING.md</a>.</p></div>
+          <div class="note"><h3>Open source</h3><p>MIT-licensed, no build step: Python (FastAPI + SoCo) and plain HTML, CSS and JavaScript.</p></div>
           <div class="note"><h3>Still a job for the Sonos app</h3><p>Setting up speakers, firmware updates, Trueplay tuning and voice assistants still happen there.</p></div>
         </div>
       </div>

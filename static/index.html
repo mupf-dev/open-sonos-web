@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -18,13 +18,13 @@
       <div class="brand">
         <span class="logo"></span>
         <span>Sonos</span>
-        <button class="icon-btn theme-btn" id="themeBtn" title="Design wechseln"></button>
+        <button class="icon-btn theme-btn" id="themeBtn"></button>
       </div>
-      <div class="section-label">Räume</div>
+      <div class="section-label" data-i18n="sidebar.rooms">Rooms</div>
       <nav class="rooms" id="rooms"></nav>
       <div class="sidebar-foot">
-        <button class="ghost-btn" id="partyBtn">Alle verbinden</button>
-        <button class="ghost-btn" id="ungroupBtn">Alle trennen</button>
+        <button class="ghost-btn" id="partyBtn" data-i18n="sidebar.party">Group all</button>
+        <button class="ghost-btn" id="ungroupBtn" data-i18n="sidebar.ungroup">Ungroup all</button>
       </div>
     </aside>
 
@@ -35,13 +35,13 @@
           <svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg>
         </button>
         <nav class="tabs" id="tabs">
-          <button data-view="now" class="active">Jetzt läuft</button>
-          <button data-view="queue">Warteschlange</button>
-          <button data-view="favorites">Favoriten</button>
-          <button data-view="playlists">Playlists</button>
-          <button data-view="library">Bibliothek</button>
-          <button data-view="alarms">Wecker</button>
-          <button data-view="rooms">Räume</button>
+          <button data-view="now" class="active" data-i18n="tabs.now">Now playing</button>
+          <button data-view="queue" data-i18n="tabs.queue">Queue</button>
+          <button data-view="favorites" data-i18n="tabs.favorites">Favorites</button>
+          <button data-view="playlists" data-i18n="tabs.playlists">Playlists</button>
+          <button data-view="library" data-i18n="tabs.library">Library</button>
+          <button data-view="alarms" data-i18n="tabs.alarms">Alarms</button>
+          <button data-view="rooms" data-i18n="tabs.rooms">Rooms</button>
         </nav>
       </header>
       <section class="view" id="view"></section>
@@ -56,6 +56,7 @@
   <dialog id="dialog"></dialog>
   <div class="toast" id="toast"></div>
 
+  <script src="/static/i18n.js"></script>
   <script src="/static/app.js"></script>
 </body>
 </html>
