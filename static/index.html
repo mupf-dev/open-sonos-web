@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <title>Sonos</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='black'/><circle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='3'/></svg>">
+  <link rel="stylesheet" href="/static/app.css">
+  <script>
+    try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <span class="logo"></span>
+        <span>Sonos</span>
+        <button class="icon-btn theme-btn" id="themeBtn" title="Design wechseln"></button>
+      </div>
+      <div class="section-label">Räume</div>
+      <nav class="rooms" id="rooms"></nav>
+      <div class="sidebar-foot">
+        <button class="ghost-btn" id="partyBtn">Alle verbinden</button>
+        <button class="ghost-btn" id="ungroupBtn">Alle trennen</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="room-switch" id="roomSwitch">
+          <span id="roomTitle">–</span>
+          <svg viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></svg>
+        </button>
+        <nav class="tabs" id="tabs">
+          <button data-view="now" class="active">Jetzt läuft</button>
+          <button data-view="queue">Warteschlange</button>
+          <button data-view="favorites">Favoriten</button>
+          <button data-view="playlists">Playlists</button>
+          <button data-view="library">Bibliothek</button>
+          <button data-view="alarms">Wecker</button>
+          <button data-view="rooms">Räume</button>
+        </nav>
+      </header>
+      <section class="view" id="view"></section>
+    </main>
+  </div>
+
+  <div class="stage" id="stage"></div>
+  <footer class="player" id="player"></footer>
+
+  <div class="sheet-backdrop" id="sheetBackdrop"></div>
+  <div class="menu" id="menu" role="menu"></div>
+  <dialog id="dialog"></dialog>
+  <div class="toast" id="toast"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

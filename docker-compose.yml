@@ -1,0 +1,14 @@
+services:
+  sonos-web:
+    build: .
+    container_name: sonos-web
+    # Host-Netzwerk ist nötig, damit die automatische Erkennung (SSDP-Multicast) funktioniert
+    network_mode: host
+    environment:
+      # Optional: IP eines Lautsprechers, falls die Erkennung nicht klappt
+      # SONOS_HOSTS: "192.168.178.40"
+      # SONOS_DEMO: "1"
+      SONOS_CONFIG: /data/config.json
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
