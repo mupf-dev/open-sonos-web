@@ -1,9 +1,9 @@
-# Sonos Web
+# OSW – Open Sonos Web
 
-A clean web interface for Sonos – a white light theme and a black dark theme (follows your system, or switch it with the icon in the top-left corner).
+A clean, open-source web interface for Sonos speakers – a white light theme and a black dark theme (follows your system, or switch it with the icon in the top-left corner).
 It controls your speakers directly on the local network via UPnP (using the [SoCo](https://github.com/SoCo/SoCo) library) – no Sonos cloud, no account.
 
-**Website & screenshots:** https://mupf-dev.github.io/sonos-web/
+**Website & screenshots:** https://mupf-dev.github.io/open-sonos-web/
 
 ![Now playing](docs/screenshots/now-light.jpg)
 
@@ -30,8 +30,8 @@ Keyboard: Space = play/pause, ↑/↓ = volume, Shift + ←/→ = previous/next 
 ## Getting started
 
 ```bash
-git clone https://github.com/mupf-dev/sonos-web
-cd sonos-web
+git clone https://github.com/mupf-dev/open-sonos-web
+cd open-sonos-web
 ./run.sh            # http://localhost:8080
 ./run.sh --demo     # demo mode with simulated rooms, no speakers needed
 ./run.sh --port 9000
@@ -96,4 +96,4 @@ data/                  local settings, service tokens and cover cache (created a
 
 [MIT](LICENSE) © 2026 Marc Leunig
 
-Not an official Sonos product. Sonos is a trademark of Sonos, Inc.
+OSW (Open Sonos Web) is an independent open-source project. It is not affiliated with, endorsed or sponsored by Sonos, Inc. Sonos is a trademark of Sonos, Inc.

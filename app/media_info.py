@@ -16,7 +16,7 @@ from urllib.parse import quote
 
 import requests
 
-HEADERS = {"User-Agent": "sonos-web/1.0 (lokale Sonos-Oberflaeche)"}
+HEADERS = {"User-Agent": "OSW/1.0 (Open Sonos Web, open-source local controller)"}
 MUSIC_WORDS = re.compile(r"band|musik|sänger|rapper|dj|komponist|produzent|duo|gruppe|singer|musician|"
                          r"group|songwriter|producer|orchestra|orchester|ensemble|künstler", re.I)
 

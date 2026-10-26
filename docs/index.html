@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sonos Web – a clean web interface for Sonos</title>
+  <title>OSW – Open Sonos Web</title>
   <meta name="description" content="A local web interface for Sonos: all rooms, groups, Spotify browsing, synced lyrics and a stage view with music video. Light and dark, no cloud.">
-  <meta property="og:title" content="Sonos Web">
+  <meta property="og:title" content="OSW – Open Sonos Web">
   <meta property="og:description" content="A clean, local web interface for Sonos – light & dark, with lyrics and a stage view.">
   <meta property="og:image" content="screenshots/stage-lyrics-dark.jpg">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='black'/><circle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='3'/></svg>">
@@ -40,7 +40,7 @@
     /* Header */
     header { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--border); }
     header .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; font-size: 14px; text-decoration: none; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; font-size: 17px; text-decoration: none; }
     .logo { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--text); }
     nav.links { display: flex; gap: 22px; margin-left: auto; font-size: 15px; }
     nav.links a { text-decoration: none; color: var(--muted); }
@@ -129,12 +129,12 @@
 <body>
   <header>
     <div class="wrap">
-      <a class="brand" href="#"><span class="logo"></span>Sonos Web</a>
+      <a class="brand" href="#" title="Open Sonos Web"><span class="logo"></span>OSW</a>
       <nav class="links">
         <a href="#features">Features</a>
         <a href="#stage">Stage view</a>
         <a href="#installation">Installation</a>
-        <a href="https://github.com/mupf-dev/sonos-web">GitHub</a>
+        <a href="https://github.com/mupf-dev/open-sonos-web">GitHub</a>
       </nav>
       <button class="icon-btn" id="themeBtn" title="Switch theme" aria-label="Switch theme"></button>
     </div>
@@ -143,11 +143,11 @@
   <main>
     <div class="hero wrap">
       <div class="eyebrow">Open source · Local · No cloud</div>
-      <h1>Your Sonos.<br>In the browser. Calm and clear.</h1>
-      <p class="lead">A clean web interface for every room – with Spotify browsing, synced lyrics and a full-screen stage view. In white or in black.</p>
+      <h1>Your music.<br>In the browser. Calm and clear.</h1>
+      <p class="lead"><b>OSW – Open Sonos Web</b> is a clean, open-source web interface for every room – with Spotify browsing, synced lyrics and a full-screen stage view. In white or in black.</p>
       <div class="cta">
         <a class="btn primary" href="#installation">Get started</a>
-        <a class="btn" href="https://github.com/mupf-dev/sonos-web">
+        <a class="btn" href="https://github.com/mupf-dev/open-sonos-web">
           <svg viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>
           Code on GitHub</a>
       </div>
@@ -246,8 +246,8 @@
           <div class="step">
             <h3>Download</h3>
             <p>Clone the repository.</p>
-            <pre><code>git clone https://github.com/mupf-dev/sonos-web
-cd sonos-web</code></pre>
+            <pre><code>git clone https://github.com/mupf-dev/open-sonos-web
+cd open-sonos-web</code></pre>
           </div>
           <div class="step">
             <h3>Start</h3>
@@ -274,7 +274,7 @@ docker compose up -d</code></pre>
           <div class="note"><h3>Local, no login</h3><p>Anyone who can reach the page on your network can control the speakers – just like the Sonos app. Do not expose it to the internet.</p></div>
           <div class="note"><h3>External services</h3><p>For lyrics, artist info and videos, artist and title are sent to LRCLIB, Wikipedia and YouTube – only in the stage view.</p></div>
           <div class="note"><h3>Music services</h3><p>To browse, the interface links itself to the service once. Your speakers' own sign-in stays untouched.</p></div>
-          <div class="note"><h3>Your language</h3><p>English and German are built in and follow your browser. Another language is just one JSON file – see <a href="https://github.com/mupf-dev/sonos-web/blob/main/TRANSLATING.md">TRANSLATING.md</a>.</p></div>
+          <div class="note"><h3>Your language</h3><p>English and German are built in and follow your browser. Another language is just one JSON file – see <a href="https://github.com/mupf-dev/open-sonos-web/blob/main/TRANSLATING.md">TRANSLATING.md</a>.</p></div>
           <div class="note"><h3>Open source</h3><p>MIT-licensed, no build step: Python (FastAPI + SoCo) and plain HTML, CSS and JavaScript.</p></div>
           <div class="note"><h3>Still a job for the Sonos app</h3><p>Setting up speakers, firmware updates, Trueplay tuning and voice assistants still happen there.</p></div>
         </div>
@@ -285,7 +285,7 @@ docker compose up -d</code></pre>
   <footer>
     <div class="wrap">
       <span>MIT License · © 2026 Marc Leunig · Built with <a href="https://github.com/SoCo/SoCo">SoCo</a> and <a href="https://fastapi.tiangolo.com">FastAPI</a></span>
-      <span>Not an official Sonos product. Sonos is a trademark of Sonos, Inc. · Screenshots taken in demo mode</span>
+      <span>OSW (Open Sonos Web) is an independent open-source project. It is not affiliated with, endorsed or sponsored by Sonos, Inc. Sonos is a trademark of Sonos, Inc. · Screenshots taken in demo mode</span>
     </div>
   </footer>
 

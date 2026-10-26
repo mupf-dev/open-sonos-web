@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Startet die Sonos-Weboberfläche.  Nutzung: ./run.sh [--demo] [--port 8080]
+# Startet OSW (Open Sonos Web).  Nutzung: ./run.sh [--demo] [--port 8080]
 set -euo pipefail
 cd "$(dirname "$0")"
 PORT=8080

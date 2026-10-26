@@ -1,7 +1,7 @@
 services:
-  sonos-web:
+  osw:
     build: .
-    container_name: sonos-web
+    container_name: osw
     # Host-Netzwerk ist nötig, damit die automatische Erkennung (SSDP-Multicast) funktioniert
     network_mode: host
     environment:

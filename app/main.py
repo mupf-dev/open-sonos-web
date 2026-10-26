@@ -1,4 +1,4 @@
-"""Web-Oberfläche für Sonos: REST-API + statisches Frontend."""
+"""OSW (Open Sonos Web): REST-API + statisches Frontend."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 STATIC = Path(__file__).resolve().parent.parent / "static"
 
 svc = DemoService() if os.environ.get("SONOS_DEMO", "").lower() in ("1", "true", "yes") else SonosService()
-app = FastAPI(title="Sonos Web", docs_url="/api/docs", openapi_url="/api/openapi.json")
+app = FastAPI(title="OSW – Open Sonos Web", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
 
 @app.exception_handler(Exception)

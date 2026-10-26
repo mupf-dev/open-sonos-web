@@ -1,4 +1,4 @@
-# Translating Sonos Web
+# Translating OSW (Open Sonos Web)
 
 The interface is fully translatable. English is the primary language and the reference; every other language is a single JSON file.
 
