@@ -1,71 +1,92 @@
 # Sonos Web
 
-Schlanke Weboberfläche für Sonos – helles Design in Weiß, dunkles Design in Schwarz (folgt automatisch dem System, umschaltbar über das Symbol oben links).
-Steuert die Lautsprecher direkt im lokalen Netz über die UPnP-Schnittstelle (Bibliothek [SoCo](https://github.com/SoCo/SoCo)), ohne Sonos-Cloud und ohne Konto.
+A clean web interface for Sonos – a white light theme and a black dark theme (follows your system, or switch it with the icon in the top-left corner).
+It controls your speakers directly on the local network via UPnP (using the [SoCo](https://github.com/SoCo/SoCo) library) – no Sonos cloud, no account.
 
-## Funktionen
+**Website & screenshots:** https://mupf-dev.github.io/sonos-web/
 
-| Bereich | Was geht |
+![Now playing](docs/screenshots/now-light.jpg)
+
+> **Note:** The user interface is currently in German.
+
+## Features
+
+| Area | What you can do |
 |---|---|
-| **Jetzt läuft** | Cover, Titel, Fortschritt mit Spulen, Play/Pause, Vor/Zurück, Zufall, Wiederholen (alle/einer), Crossfade, Sleep-Timer, Umschalten auf TV bzw. Line-In, Gruppen- und Einzellautstärke, Stummschalten |
-| **Warteschlange** | Anzeigen, Titel anspielen, entfernen, per Drag & Drop umsortieren, leeren, als Sonos-Playlist speichern |
-| **Bühne** | Alternative „Jetzt läuft“-Ansicht: großes Cover, Hintergrund in den Cover-Farben, Bedienelemente blenden sich aus, Vollbild; dazu zeitgenau mitlaufender Songtext (LRCLIB), Interpreten-Infos (Wikipedia), „Als Nächstes“ und Musikvideo-Suche bei YouTube |
-| **Musikdienste** | Spotify & Co. durchsuchen (Startseite mit sortierbaren Zeilen, Suche, eigene Bibliothek) – einmalige Verknüpfung unter *Räume › Musikdienste* |
-| **Favoriten** | Sonos-Favoriten (Radio, Spotify-Playlists usw.) abspielen, einreihen |
-| **Playlists** | Sonos-Playlists öffnen, abspielen, einreihen, umbenennen, löschen, Titel hinzufügen |
-| **Bibliothek** | Musikbibliothek (NAS/Freigaben) nach Interpreten, Alben, Titeln, Genres, Komponisten, importierten Playlists und Ordnern durchsuchen; Suche; Neuindizierung |
-| **Wecker** | Anlegen, bearbeiten, löschen, aktivieren – Uhrzeit, Raum, Wiederholung (inkl. einzelner Tage), Musik aus Favoriten, Lautstärke, Dauer, Wiedergabemodus |
-| **Räume** | Gruppen bilden/auflösen, alle verbinden/trennen; je Lautsprecher: Bässe, Höhen, Balance, Loudness, Nachtmodus, Sprachverbesserung, Subwoofer, Surround, Trueplay (je nach Modell), Name, Statusleuchte, Tastensperre, Geräteinfos |
+| **Now playing** | Cover art, title, seekable progress, play/pause, next/previous, shuffle, repeat (all/one), crossfade, sleep timer, switch to TV or line-in, group and per-room volume, mute |
+| **Stage view** | Alternative now-playing view: large cover, background tinted with the album's colors, controls fade away, full screen; time-synced lyrics (LRCLIB), artist info (Wikipedia), up next, and a muted music video synced to playback – blurred in the background or up front |
+| **Queue** | View, jump to a track, remove, reorder via drag & drop, clear, save as a Sonos playlist |
+| **Music services** | Browse Spotify and other services (home page with reorderable rows, search, your library) – link once under *Räume › Musikdienste* |
+| **Favorites** | Play or enqueue Sonos favorites (radio, Spotify playlists, …); service folders open in the browser |
+| **Playlists** | Open, play, enqueue, rename and delete Sonos playlists, add tracks; cover mosaics (missing covers are looked up via a linked service) |
+| **Library** | Browse the local music library (NAS/shares) by artist, album, track, genre, composer, imported playlists and folders; search; re-index |
+| **Alarms** | Create, edit, delete and toggle alarms – time, room, recurrence (including specific weekdays), music from favorites, volume, duration, play mode |
+| **Rooms** | Group/ungroup, party mode; per speaker: bass, treble, balance, loudness, night mode, speech enhancement, subwoofer, surround, Trueplay (model-dependent), name, status light, button lock, device info |
 
-Tastatur: Leertaste = Play/Pause, ↑/↓ = Lautstärke, Shift + ←/→ = Titel zurück/vor.
+Keyboard: Space = play/pause, ↑/↓ = volume, Shift + ←/→ = previous/next track.
 
-Nicht enthalten: Musikvideos direkt in der Oberfläche (dafür bräuchte es einen YouTube-API-Schlüssel, und das Video würde parallel zu Sonos Ton abspielen) – die Bühne öffnet stattdessen die YouTube-Suche. Ordner von Diensten, die hier nicht verbunden sind, lassen sich nur in der Sonos-App öffnen.
+![Stage view with synced lyrics](docs/screenshots/stage-lyrics-dark.jpg)
 
-## Starten
+## Getting started
 
 ```bash
+git clone https://github.com/mupf-dev/sonos-web
+cd sonos-web
 ./run.sh            # http://localhost:8080
-./run.sh --demo     # Demo-Modus mit simulierten Räumen, ohne echte Lautsprecher
+./run.sh --demo     # demo mode with simulated rooms, no speakers needed
 ./run.sh --port 9000
 ```
 
-Beim ersten Start wird automatisch eine virtuelle Umgebung (`.venv`) angelegt.
+On first start, a virtual environment (`.venv`) is created automatically. Requires Python 3.10+.
 
-### Docker (z. B. auf Raspberry Pi oder NAS)
+### Docker (e.g. on a Raspberry Pi or NAS)
 
 ```bash
 docker compose up -d --build   # http://<host>:8080
 ```
 
-`network_mode: host` ist nötig, damit die automatische Erkennung funktioniert.
+`network_mode: host` is required for automatic discovery to work.
 
-## Lautsprecher finden
+## Finding your speakers
 
-Die Erkennung nutzt SSDP-Multicast und klappt nur, wenn der Server **im selben Netz** wie die Lautsprecher läuft.
-Falls nichts gefunden wird, zeigt die Oberfläche einen Verbindungsdialog: Dort die IP **eines** Lautsprechers eintragen
-(Sonos-App › Einstellungen › System › Über mein System) – alle anderen Räume werden darüber gefunden.
-Alternativ per Umgebungsvariable `SONOS_HOSTS=192.168.178.40` oder über die Netzwerksuche im Dialog.
+Discovery uses SSDP multicast and only works when the server runs **on the same network** as the speakers.
+If nothing is found, the interface shows a connection dialog: enter the IP address of **one** speaker
+(Sonos app › Settings › System › About my system) – all other rooms are found through it.
+Alternatively, set the environment variable `SONOS_HOSTS=192.168.178.40` or use the network scan in the dialog.
 
-**WSL2-Hinweis:** Im Standard-NAT-Modus sieht WSL keine Multicast-Pakete aus dem Heimnetz. Entweder die IP eintragen
-(Unicast funktioniert) oder in `%UserProfile%\.wslconfig` den gespiegelten Modus aktivieren und WSL neu starten:
+**WSL2:** In the default NAT mode, WSL does not see multicast traffic from your home network. Either enter the IP
+(unicast works) or enable mirrored networking in `%UserProfile%\.wslconfig` and restart WSL:
 
 ```ini
 [wsl2]
 networkingMode=mirrored
 ```
 
-Um die Oberfläche von Handy/Tablet zu nutzen, den Server auf einem Gerät im Heimnetz betreiben (Docker-Variante) oder unter WSL den gespiegelten Modus verwenden.
+The `windows/` folder contains PowerShell scripts that apply and revert this setting (with a backup).
 
-## Aufbau
+To use the interface from a phone or tablet, run the server on a device on your home network (e.g. via Docker).
+
+## Project layout
 
 ```
-app/main.py            REST-API (FastAPI), Doku unter /api/docs
-app/sonos_service.py   Steuerung über SoCo
-app/demo_service.py    Simuliertes System für den Demo-Modus
-static/                Oberfläche (HTML/CSS/JS, kein Build-Schritt)
-data/config.json       gespeicherte Lautsprecher-IPs (wird automatisch angelegt)
+app/main.py            REST API (FastAPI), docs at /api/docs
+app/sonos_service.py   speaker control via SoCo
+app/music_services.py  music services (Spotify & co.) via the Sonos SMAPI
+app/media_info.py      lyrics, artist info and music videos
+app/demo_service.py    simulated system for demo mode
+static/                user interface (HTML/CSS/JS, no build step)
+docs/                  GitHub Pages website
+data/                  local settings, service tokens and cover cache (created automatically, not in git)
 ```
 
-Externe Dienste: Für Songtexte und Interpreten-Infos (nur in der Bühnen-Ansicht) werden Interpret, Titel, Album und Dauer an lrclib.net bzw. wikipedia.org gesendet; fehlende Playlist-Cover werden über den verbundenen Musikdienst gesucht.
+## Privacy & security
 
-Sicherheit: Es gibt keine Anmeldung – wer die Seite im Netz erreicht, kann die Lautsprecher steuern (wie mit der Sonos-App auch). Nicht ins Internet freigeben.
+- **External services:** In the stage view, artist, title, album and duration are sent to lrclib.net (lyrics), wikipedia.org (artist info) and YouTube (music video, embedded via youtube-nocookie.com). Missing playlist covers are looked up via a linked music service.
+- **Music services:** To browse a service, the interface links itself to it once (like an additional Sonos controller). The token is stored in `data/music_tokens.json`; the speakers' own sign-in is not affected.
+- **No login:** Anyone who can reach the page on your network can control the speakers – just like with the Sonos app. Do not expose it to the internet.
+
+## License
+
+[MIT](LICENSE) © 2026 Marc Leunig
+
+Not an official Sonos product. Sonos is a trademark of Sonos, Inc.

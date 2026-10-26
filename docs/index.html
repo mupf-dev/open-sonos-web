@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sonos Web – a clean web interface for Sonos</title>
+  <meta name="description" content="A local web interface for Sonos: all rooms, groups, Spotify browsing, synced lyrics and a stage view with music video. Light and dark, no cloud.">
+  <meta property="og:title" content="Sonos Web">
+  <meta property="og:description" content="A clean, local web interface for Sonos – light & dark, with lyrics and a stage view.">
+  <meta property="og:image" content="screenshots/stage-lyrics-dark.jpg">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='black'/><circle cx='16' cy='16' r='7' fill='none' stroke='white' stroke-width='3'/></svg>">
+  <script>
+    try { const t = localStorage.getItem("theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
+  <style>
+    :root {
+      --bg: #ffffff; --surface: #f5f5f5; --surface-2: #ececec; --text: #0a0a0a; --muted: #6e6e6e;
+      --border: #e9e9e9; --inv-bg: #0a0a0a; --inv-text: #ffffff; --shadow: 0 30px 80px rgba(0, 0, 0, .14), 0 4px 14px rgba(0, 0, 0, .06);
+      color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #000000; --surface: #0f0f0f; --surface-2: #1a1a1a; --text: #f5f5f5; --muted: #8f8f8f;
+        --border: #1f1f1f; --inv-bg: #ffffff; --inv-text: #000000; --shadow: 0 30px 80px rgba(0, 0, 0, .8), 0 0 0 1px #222;
+        color-scheme: dark;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #000000; --surface: #0f0f0f; --surface-2: #1a1a1a; --text: #f5f5f5; --muted: #8f8f8f;
+      --border: #1f1f1f; --inv-bg: #ffffff; --inv-text: #000000; --shadow: 0 30px 80px rgba(0, 0, 0, .8), 0 0 0 1px #222;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI Variable", "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; }
+    img { max-width: 100%; height: auto; display: block; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+
+    /* Header */
+    header { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: saturate(1.4) blur(14px); border-bottom: 1px solid var(--border); }
+    header .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .28em; text-transform: uppercase; font-size: 14px; text-decoration: none; }
+    .logo { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--text); }
+    nav.links { display: flex; gap: 22px; margin-left: auto; font-size: 15px; }
+    nav.links a { text-decoration: none; color: var(--muted); }
+    nav.links a:hover { color: var(--text); }
+    .icon-btn { width: 38px; height: 38px; border-radius: 50%; border: 0; background: none; color: var(--text); display: grid; place-items: center; cursor: pointer; }
+    .icon-btn:hover { background: var(--surface); }
+    svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 999px; font-weight: 600; text-decoration: none; border: 1px solid var(--border); font-size: 15px; transition: .15s; }
+    .btn.primary { background: var(--inv-bg); color: var(--inv-text); border-color: var(--inv-bg); }
+    .btn:hover { opacity: .85; }
+
+    /* Hero */
+    .hero { padding: 88px 0 40px; text-align: center; }
+    .eyebrow { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    h1 { font-size: clamp(40px, 6.6vw, 82px); line-height: 1.02; letter-spacing: -.045em; margin: 16px auto 20px; max-width: 900px; }
+    .lead { font-size: clamp(18px, 2vw, 21px); color: var(--muted); max-width: 680px; margin: 0 auto 32px; }
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .shot { border-radius: 14px; overflow: hidden; box-shadow: var(--shadow); background: var(--surface); cursor: zoom-in; }
+    .hero .shot { margin: 64px auto 0; max-width: 1180px; }
+    .theme-only-dark { display: none; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .theme-only-light { display: none; } :root:not([data-theme="light"]) .theme-only-dark { display: block; } }
+    :root[data-theme="dark"] .theme-only-light { display: none; }
+    :root[data-theme="dark"] .theme-only-dark { display: block; }
+
+    /* Sections */
+    section { padding: 96px 0; }
+    section + section { border-top: 1px solid var(--border); }
+    h2 { font-size: clamp(30px, 4.2vw, 50px); letter-spacing: -.035em; line-height: 1.08; margin: 10px 0 16px; }
+    .sub { color: var(--muted); max-width: 640px; font-size: 18px; margin: 0 0 40px; }
+    .split { display: grid; grid-template-columns: 1fr 1.6fr; gap: 56px; align-items: center; }
+    .split.rev { grid-template-columns: 1.6fr 1fr; }
+    .split.rev > :first-child { order: 2; }
+    ul.check { list-style: none; padding: 0; margin: 20px 0 0; }
+    ul.check li { padding: 7px 0 7px 30px; position: relative; }
+    ul.check li::before { content: ""; position: absolute; left: 4px; top: 15px; width: 12px; height: 7px; border-left: 2px solid var(--text); border-bottom: 2px solid var(--text); transform: rotate(-45deg); }
+
+    .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .feature { background: var(--surface); border-radius: 18px; padding: 26px; }
+    .feature svg { width: 26px; height: 26px; margin-bottom: 14px; }
+    .feature h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: -.01em; }
+    .feature p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.55; }
+
+    .gallery { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .gallery figure { margin: 0; }
+    figcaption { color: var(--muted); font-size: 14px; margin-top: 12px; text-align: center; }
+    .phones { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 900px; margin: 0 auto; }
+    .phones .shot { border-radius: 28px; border: 6px solid var(--surface-2); }
+
+    /* Installation */
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; counter-reset: step; }
+    .step { background: var(--surface); border-radius: 18px; padding: 26px; counter-increment: step; min-width: 0; }
+    .step::before { content: counter(step); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--inv-bg); color: var(--inv-text); font-weight: 700; font-size: 14px; margin-bottom: 14px; }
+    .step h3 { margin: 0 0 8px; font-size: 18px; }
+    .step p { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+    pre { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; overflow-x: auto; font: 13.5px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin: 0; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .9em; background: var(--surface); padding: 2px 6px; border-radius: 6px; }
+    pre code { background: none; padding: 0; }
+
+    .notes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .note { border: 1px solid var(--border); border-radius: 18px; padding: 24px; }
+    .note h3 { margin: 0 0 6px; font-size: 17px; }
+    .note p { margin: 0; color: var(--muted); font-size: 15px; }
+
+    footer { border-top: 1px solid var(--border); padding: 40px 0 56px; color: var(--muted); font-size: 14px; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; }
+
+    /* Lightbox */
+    dialog { border: 0; padding: 0; background: transparent; max-width: min(1500px, 96vw); max-height: 94vh; }
+    dialog::backdrop { background: rgba(0, 0, 0, .82); backdrop-filter: blur(4px); }
+    dialog img { max-height: 92vh; width: auto; border-radius: 12px; cursor: zoom-out; }
+
+    @media (max-width: 900px) {
+      nav.links { display: none; }
+      .split, .split.rev { grid-template-columns: 1fr; gap: 32px; }
+      .split.rev > :first-child { order: 0; }
+      .features, .steps, .notes { grid-template-columns: 1fr; }
+      .gallery { grid-template-columns: 1fr; }
+      .phones { grid-template-columns: 1fr 1fr; }
+      section { padding: 64px 0; }
+      .hero { padding-top: 56px; }
+      header .wrap { padding: 0 16px; }
+      .wrap { padding: 0 16px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <a class="brand" href="#"><span class="logo"></span>Sonos Web</a>
+      <nav class="links">
+        <a href="#features">Features</a>
+        <a href="#stage">Stage view</a>
+        <a href="#installation">Installation</a>
+        <a href="https://github.com/mupf-dev/sonos-web">GitHub</a>
+      </nav>
+      <button class="icon-btn" id="themeBtn" title="Switch theme" aria-label="Switch theme"></button>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero wrap">
+      <div class="eyebrow">Open source · Local · No cloud</div>
+      <h1>Your Sonos.<br>In the browser. Calm and clear.</h1>
+      <p class="lead">A clean web interface for every room – with Spotify browsing, synced lyrics and a full-screen stage view. In white or in black.</p>
+      <div class="cta">
+        <a class="btn primary" href="#installation">Get started</a>
+        <a class="btn" href="https://github.com/mupf-dev/sonos-web">
+          <svg viewBox="0 0 24 24"><path d="M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .1-1.4-.5-2 2.8-.3 5.5-1.4 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.2 4.2 0 0 0-.1-3.2s-1.1-.3-3.5 1.3a12.3 12.3 0 0 0-6.2 0C6.5 2.8 5.4 3.1 5.4 3.1a4.2 4.2 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.5c0 4.6 2.7 5.7 5.5 6-.6.6-.6 1.2-.5 2V21"/></svg>
+          Code on GitHub</a>
+      </div>
+      <div class="shot">
+        <img class="theme-only-light" src="screenshots/now-light.jpg" alt="Now playing – light theme" width="2880" height="1800">
+        <img class="theme-only-dark" src="screenshots/now-dark.jpg" alt="Now playing – dark theme" width="2880" height="1800">
+      </div>
+    </div>
+
+    <section id="features">
+      <div class="wrap">
+        <div class="eyebrow">Features</div>
+        <h2>Everything you use the Sonos app for, day to day.</h2>
+        <p class="sub">It talks directly to your speakers on the home network – no account, no cloud, no tracking.</p>
+        <div class="features">
+          <div class="feature"><svg viewBox="0 0 24 24"><path d="M7 4.6v14.8l12.3-7.4z"/></svg><h3>Playback</h3><p>Play/pause, seek, shuffle, repeat, crossfade, sleep timer, TV and line-in.</p></div>
+          <div class="feature"><svg viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg><h3>Rooms &amp; groups</h3><p>Group and ungroup rooms, party mode, group and per-room volume.</p></div>
+          <div class="feature"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><h3>Music services</h3><p>Browse Spotify and more – a home page with reorderable rows, your library, search.</p></div>
+          <div class="feature"><svg viewBox="0 0 24 24"><path d="M3 6h13M3 12h13M3 18h8M16 15v6l5-3z"/></svg><h3>Queue &amp; playlists</h3><p>Drag &amp; drop reordering, save the queue as a playlist, playlists with cover mosaics.</p></div>
+          <div class="feature"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M5 3 2 6M19 3l3 3"/></svg><h3>Alarms</h3><p>Create and edit alarms – specific weekdays, favorites as wake-up music, volume, duration.</p></div>
+          <div class="feature"><svg viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></svg><h3>Sound &amp; device</h3><p>Bass, treble, balance, loudness, night mode, speech enhancement, sub, surround, LED, button lock.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="stage">
+      <div class="wrap split">
+        <div>
+          <div class="eyebrow">Stage view</div>
+          <h2>Less menu.<br>More music.</h2>
+          <p class="sub" style="margin-bottom:0">An alternative now-playing view for a tablet, a TV or a second screen.</p>
+          <ul class="check">
+            <li>Large cover art, background tinted with the album's colors</li>
+            <li>Time-synced lyrics (LRCLIB)</li>
+            <li>Artist info with photo (Wikipedia)</li>
+            <li>Muted, synced music video – blurred in the background or up front</li>
+            <li>Controls fade away, full screen with one click</li>
+          </ul>
+        </div>
+        <div class="shot">
+          <img class="theme-only-light" src="screenshots/stage-lyrics-light.jpg" alt="Stage view with lyrics, light" loading="lazy" width="2880" height="1800">
+          <img class="theme-only-dark" src="screenshots/stage-lyrics-dark.jpg" alt="Stage view with lyrics, dark" loading="lazy" width="2880" height="1800">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap split rev">
+        <div>
+          <div class="eyebrow">Music services</div>
+          <h2>Your services,<br>row by row.</h2>
+          <p class="sub" style="margin-bottom:0">Link once, then browse Spotify right in the interface. Every row scrolls sideways – and you decide the order, synced across all devices.</p>
+        </div>
+        <div class="shot">
+          <img class="theme-only-light" src="screenshots/library-light.jpg" alt="Music service home page, light" loading="lazy" width="2880" height="1800">
+          <img class="theme-only-dark" src="screenshots/library-dark.jpg" alt="Music service home page, dark" loading="lazy" width="2880" height="1800">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="eyebrow">More views</div>
+        <h2>Quiet, clear, black and white.</h2>
+        <p class="sub">No colors except your music. The theme follows your system – or switch it yourself.</p>
+        <div class="gallery">
+          <figure><div class="shot"><img src="screenshots/playlists-dark.jpg" alt="Sonos playlists with cover mosaics" loading="lazy" width="2880" height="1800"></div><figcaption>Playlists with cover mosaics</figcaption></figure>
+          <figure><div class="shot"><img src="screenshots/stage-artist-dark.jpg" alt="Stage view with artist info" loading="lazy" width="2880" height="1800"></div><figcaption>Stage view with artist info</figcaption></figure>
+          <figure><div class="shot"><img src="screenshots/queue-light.jpg" alt="Queue" loading="lazy" width="2880" height="1800"></div><figcaption>Queue with drag &amp; drop</figcaption></figure>
+          <figure><div class="shot"><img src="screenshots/rooms-light.jpg" alt="Rooms and sound settings" loading="lazy" width="2880" height="1800"></div><figcaption>Rooms, sound and device settings</figcaption></figure>
+          <figure><div class="shot"><img src="screenshots/favorites-light.jpg" alt="Sonos favorites" loading="lazy" width="2880" height="1800"></div><figcaption>Sonos favorites</figcaption></figure>
+          <figure><div class="shot"><img src="screenshots/alarms-dark.jpg" alt="Alarms" loading="lazy" width="2880" height="1800"></div><figcaption>Alarms</figcaption></figure>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="eyebrow" style="text-align:center">Around the house</div>
+        <h2 style="text-align:center">Made for your phone.</h2>
+        <p class="sub" style="text-align:center;margin-left:auto;margin-right:auto">Room picker as a bottom sheet, swipeable rows, large controls.</p>
+        <div class="phones">
+          <div class="shot"><img src="screenshots/mobile-now-dark.jpg" alt="Now playing on a phone" loading="lazy" width="780" height="1688"></div>
+          <div class="shot"><img src="screenshots/mobile-stage-dark.jpg" alt="Stage view on a phone" loading="lazy" width="780" height="1688"></div>
+          <div class="shot"><img src="screenshots/mobile-library-light.jpg" alt="Music service on a phone" loading="lazy" width="780" height="1688"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="installation">
+      <div class="wrap">
+        <div class="eyebrow">Installation</div>
+        <h2>Up and running in two minutes.</h2>
+        <p class="sub">Runs wherever Python 3.10+ or Docker runs – ideally on a device on the same network as your speakers (Raspberry Pi, NAS, PC).</p>
+        <div class="steps">
+          <div class="step">
+            <h3>Download</h3>
+            <p>Clone the repository.</p>
+            <pre><code>git clone https://github.com/mupf-dev/sonos-web
+cd sonos-web</code></pre>
+          </div>
+          <div class="step">
+            <h3>Start</h3>
+            <p>With Python (sets up its own environment) or Docker:</p>
+            <pre><code>./run.sh
+# or
+docker compose up -d</code></pre>
+          </div>
+          <div class="step">
+            <h3>Open</h3>
+            <p>Open it in your browser. If discovery finds nothing, enter the IP address of one speaker.</p>
+            <pre><code>http://localhost:8080</code></pre>
+          </div>
+        </div>
+        <p class="sub" style="margin-top:28px;margin-bottom:0">Just want to look around? <code>./run.sh --demo</code> starts a simulated system with four rooms – exactly like on this page. Note: the interface itself is currently in German.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="eyebrow">Good to know</div>
+        <h2>The fine print.</h2>
+        <div class="notes">
+          <div class="note"><h3>Local, no login</h3><p>Anyone who can reach the page on your network can control the speakers – just like the Sonos app. Do not expose it to the internet.</p></div>
+          <div class="note"><h3>External services</h3><p>For lyrics, artist info and videos, artist and title are sent to LRCLIB, Wikipedia and YouTube – only in the stage view.</p></div>
+          <div class="note"><h3>Music services</h3><p>To browse, the interface links itself to the service once. Your speakers' own sign-in stays untouched.</p></div>
+          <div class="note"><h3>Still a job for the Sonos app</h3><p>Setting up speakers, firmware updates, Trueplay tuning and voice assistants still happen there.</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>MIT License · © 2026 Marc Leunig · Built with <a href="https://github.com/SoCo/SoCo">SoCo</a> and <a href="https://fastapi.tiangolo.com">FastAPI</a></span>
+      <span>Not an official Sonos product. Sonos is a trademark of Sonos, Inc. · Screenshots taken in demo mode</span>
+    </div>
+  </footer>
+
+  <dialog id="zoom"><img alt=""></dialog>
+
+  <script>
+    // Theme: auto → light → dark (same as in the app)
+    const icons = {
+      auto: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/>',
+      light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+      dark: '<path d="M20.5 13.5A8.5 8.5 0 1 1 10.5 3.5a6.6 6.6 0 0 0 10 10z"/>',
+    };
+    const btn = document.getElementById("themeBtn");
+    const paint = () => { const t = document.documentElement.dataset.theme || "auto"; btn.innerHTML = `<svg viewBox="0 0 24 24">${icons[t]}</svg>`; };
+    btn.addEventListener("click", () => {
+      const next = { auto: "light", light: "dark", dark: "auto" }[document.documentElement.dataset.theme || "auto"];
+      if (next === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = next;
+      try { localStorage.setItem("theme", next); } catch (e) {}
+      paint();
+    });
+    paint();
+
+    // Enlarge screenshots
+    const zoom = document.getElementById("zoom");
+    document.querySelectorAll(".shot").forEach((s) => s.addEventListener("click", () => {
+      const img = [...s.querySelectorAll("img")].find((i) => i.offsetParent !== null) || s.querySelector("img");
+      zoom.querySelector("img").src = img.src;
+      zoom.querySelector("img").alt = img.alt;
+      zoom.showModal();
+    }));
+    zoom.addEventListener("click", () => zoom.close());
+  </script>
+</body>
+</html>

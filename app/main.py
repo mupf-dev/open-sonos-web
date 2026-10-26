@@ -67,16 +67,22 @@ async def remove_host(host: str):
 
 @app.get("/api/media/lyrics")
 async def lyrics(artist: str, title: str, album: str = "", duration: int = 0):
+    if svc.demo:
+        return svc.lyrics(artist, title, duration) or {}
     return await call(media_info.lyrics, artist, title, album, duration) or {}
 
 
 @app.get("/api/media/video")
 async def music_video(artist: str, title: str, duration: int = 0):
+    if svc.demo:
+        return []
     return await call(media_info.video, artist, title, duration)
 
 
 @app.get("/api/media/artist")
 async def artist(name: str):
+    if svc.demo:
+        return svc.artist_info(name) or {}
     return await call(media_info.artist_info, name) or {}
 
 

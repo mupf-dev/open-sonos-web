@@ -12,16 +12,31 @@ ARTISTS = {
                   ("Morgengrau", ["Erstes Licht", "Nebelbank", "Hafenstadt"])],
     "The Quiet Rooms": [("Paper Walls", ["Open Window", "Static", "Late Train", "Hallway Light", "Home"])],
     "Miro Vale": [("Analog Summer", ["Sunburnt", "Cassette", "Pool Lights", "August"])],
+    "Lumen Drive": [("Neon Hours", ["Midnight Signal", "Chrome Hearts", "City Glow", "Afterimage"]),
+                    ("Low Orbit", ["Satellite", "Gravity Well", "Re-Entry"])],
+    "Saltwater Choir": [("Tidal", ["Undertow", "Harbour Lights", "Driftwood", "Low Tide"])],
+    "Velvet Static": [("Slow Bloom", ["Honey", "Paper Moon", "Soft Focus", "Golden Hour"])],
 }
-COLORS = ["#d8d2c4", "#3b4252", "#c4a484", "#8fa3a3", "#b48ead", "#5e81ac"]
+# Farbpaare für die erzeugten Demo-Cover (abstrakte Verläufe, keine echten Cover)
+PALETTES = [("#ff6b6b", "#5f27cd"), ("#0abde3", "#10ac84"), ("#feca57", "#ff6b6b"), ("#48dbfb", "#341f97"),
+            ("#ff9ff3", "#5f27cd"), ("#1dd1a1", "#222f3e"), ("#c8d6e5", "#576574"), ("#ee5253", "#0a3d62"),
+            ("#f6e58d", "#6ab04c"), ("#7ed6df", "#e056fd"), ("#fab1a0", "#2d3436"), ("#55efc4", "#0984e3")]
+LYRICS = ["Die Stadt schläft noch, ich bin wach", "Lichter ziehen am Fenster vorbei", "Wir sind leiser als der Regen",
+          "Und doch hört man uns", "Halt die Zeit für einen Moment an", "Alles klingt nach Sommer",
+          "Ein Echo in den leeren Straßen", "Wir laufen weiter, Richtung Morgen", "Kein Plan, nur dieses Lied",
+          "Und der Bass trägt uns nach Haus", "Ooh, ooh", "Bleib noch ein bisschen hier"]
 
 
-def _art(title: str) -> str:
-    color = COLORS[sum(map(ord, title)) % len(COLORS)].replace("#", "%23")
-    initial = title[:1].upper()
-    return ("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
-            f"<rect width='100' height='100' fill='{color}'/><text x='50' y='62' font-family='sans-serif' "
-            f"font-size='34' text-anchor='middle' fill='white' fill-opacity='.85'>{initial}</text></svg>")
+def _art(seed: str) -> str:
+    h = sum(ord(c) * (i + 1) for i, c in enumerate(seed))
+    a, b = PALETTES[h % len(PALETTES)]
+    cx, cy, r = 18 + h % 64, 18 + (h // 7) % 64, 22 + (h // 13) % 26
+    svg = ("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><defs><linearGradient id='g' x1='0' y1='0' "
+           f"x2='1' y2='1'><stop offset='0' stop-color='{a}'/><stop offset='1' stop-color='{b}'/></linearGradient></defs>"
+           f"<rect width='100' height='100' fill='url(#g)'/><circle cx='{cx}' cy='{cy}' r='{r}' fill='white' "
+           f"fill-opacity='.2'/><circle cx='{100 - cx}' cy='{100 - cy}' r='{r // 2}' fill='black' fill-opacity='.14'/>"
+           f"<rect x='0' y='{(h // 3) % 80}' width='100' height='1.2' fill='white' fill-opacity='.35'/></svg>")
+    return "data:image/svg+xml;utf8," + svg.replace("#", "%23")
 
 
 class DemoService:
@@ -52,16 +67,24 @@ class DemoService:
             self.players[uid] = {"queue": [], "index": 0, "state": "STOPPED", "pos": 0.0, "since": time.time(),
                                  "shuffle": False, "repeat": "off", "crossfade": False, "sleep_until": None,
                                  "stream": None, "source": "NONE"}
-        self.players["RINCON_WOHN"].update(queue=self.tracks[:7], index=2, state="PLAYING", pos=41, source="LIBRARY")
+        self.players["RINCON_WOHN"].update(queue=self.tracks[16:31], index=0, state="PLAYING", pos=52, source="LIBRARY")
         self.players["RINCON_BUERO"].update(queue=self.tracks[7:12], state="PAUSED_PLAYBACK", pos=95, source="LIBRARY")
         self.favs = [
             {"id": "FV:2/1", "title": "Radio Paradise", "subtitle": "Radiosender", "stream": True},
             {"id": "FV:2/2", "title": "Deutschlandfunk", "subtitle": "Radiosender", "stream": True},
             {"id": "FV:2/3", "title": "Polarnacht", "subtitle": "Nordlicht", "stream": False, "album": "Polarnacht"},
             {"id": "FV:2/4", "title": "Paper Walls", "subtitle": "The Quiet Rooms", "stream": False, "album": "Paper Walls"},
+            {"id": "FV:2/5", "title": "Neon Hours", "subtitle": "Lumen Drive", "stream": False, "album": "Neon Hours"},
+            {"id": "FV:2/6", "title": "Jazz Lounge FM", "subtitle": "Radiosender", "stream": True},
+            {"id": "FV:2/7", "title": "Tidal", "subtitle": "Saltwater Choir", "stream": False, "album": "Tidal"},
+            {"id": "FV:2/8", "title": "Slow Bloom", "subtitle": "Velvet Static", "stream": False, "album": "Slow Bloom"},
         ]
-        self.playlists_ = {"SQ:1": {"title": "Sonntagmorgen", "tracks": self.tracks[3:9]},
-                           "SQ:2": {"title": "Fokus", "tracks": self.tracks[12:]}}
+        self.playlists_ = {"SQ:1": {"title": "Sonntagmorgen", "tracks": self.tracks[3:16:2]},
+                           "SQ:2": {"title": "Fokus", "tracks": self.tracks[12:]},
+                           "SQ:3": {"title": "Abendessen", "tracks": self.tracks[1::3]},
+                           "SQ:4": {"title": "Roadtrip", "tracks": self.tracks[::4]},
+                           "SQ:5": {"title": "Lieblingssongs", "tracks": self.tracks[2::5]},
+                           "SQ:6": {"title": "Ruhig", "tracks": self.tracks[20:]}}
         self.alarms_ = [{"id": "1", "uid": "RINCON_BAD", "time": "06:45", "duration": 60, "recurrence": "WEEKDAYS",
                          "enabled": True, "volume": 15, "play_mode": "NORMAL", "include_linked": False,
                          "program_id": "FV:2/2"}]
@@ -282,6 +305,13 @@ class DemoService:
                 for f in self.favs]
 
     def _tracks_for(self, item_id: str) -> list[dict]:
+        if item_id.startswith("svc:demo:"):
+            name = item_id.split(":", 3)[3]
+            album = [t for t in self.tracks if t["album"] == name]
+            if album:
+                return album
+            h = sum(map(ord, name))
+            return [self.tracks[(h + i * 5) % len(self.tracks)] for i in range(8)]
         if item_id.startswith("FV:"):
             fav = next(f for f in self.favs if f["id"] == item_id)
             return [t for t in self.tracks if t["album"] == fav.get("album")]
@@ -298,8 +328,35 @@ class DemoService:
             return list(self.tracks)
         raise KeyError("Eintrag nicht gefunden")
 
+    # ------------------------------------------------------------------ Demo-Musikdienst
+    SECTIONS = {"forYou": ("Für dich", "playlist"), "new": ("Neu erschienen", "album"),
+                "moods": ("Stimmungen", "playlist"), "yours": ("Deine Musik", "playlist")}
+    MOODS = ["Fokus", "Sonntagmorgen", "Laufen", "Abendessen", "Roadtrip", "Regentag", "Party", "Einschlafen"]
+
     def services(self, uid: str) -> list[dict]:
-        return []
+        return [{"sid": "demo", "name": "Streaming", "auth": "AppLink", "linked": True,
+                 "root": "svc:demo:container:root"}]
+
+    def _svc_item(self, kind: str, name: str, subtitle: str = "") -> dict:
+        return {"id": f"svc:demo:{kind}:{name}", "title": name, "subtitle": subtitle,
+                "kind": "musicAlbum" if kind == "album" else "playlistContainer",
+                "container": True, "playable": True, "art": _art(name)}
+
+    def _svc_browse(self, object_id: str) -> list[dict]:
+        _, _, kind, name = object_id.split(":", 3)
+        if name == "root":
+            return [{"id": f"svc:demo:section:{k}", "title": t, "subtitle": "", "kind": "container",
+                     "container": True, "playable": False, "art": None} for k, (t, _) in self.SECTIONS.items()]
+        if kind == "section":
+            if name == "forYou":
+                return [self._svc_item("playlist", n, "Für dich") for n in
+                        ("Mix der Woche", "Neu für dich", "Tagesmix 1", "Tagesmix 2", "Zeitkapsel", "Lieblingssongs", "Entdeckungen")]
+            if name == "new":
+                return [self._svc_item("album", al, a) for a, albums in ARTISTS.items() for al, _ in albums]
+            if name == "moods":
+                return [self._svc_item("playlist", n, "Stimmung") for n in self.MOODS]
+            return [self._svc_item("playlist", n, "Playlist") for n in ("Lieblingssongs", "Autofahrt", "Kochen", "Workout")]
+        return [self._track(t) for t in self._tracks_for(object_id)]
 
     def service_link(self, uid: str, sid: str, step: str) -> dict:
         raise ValueError("Im Demo-Modus nicht verfügbar")
@@ -323,7 +380,11 @@ class DemoService:
 
     def browse(self, uid, object_id, start, count, search=None) -> dict:
         items: list[dict] = []
-        if object_id == "A:ALBUMARTIST" or object_id == "A:ARTIST":
+        if object_id.startswith("svc:demo:"):
+            items = self._svc_browse(object_id) if not search else [
+                self._track(t) for t in self.tracks if search.lower() in (t["title"] + t["artist"]).lower()]
+            search = None
+        elif object_id == "A:ALBUMARTIST" or object_id == "A:ARTIST":
             items = [{"id": f"A:ALBUMARTIST/{a}", "title": a, "subtitle": "", "kind": "musicArtist",
                       "container": True, "playable": True, "art": _art(a)} for a in ARTISTS]
         elif object_id == "A:ALBUM":
@@ -344,8 +405,31 @@ class DemoService:
         return {"items": items[start:start + count], "total": len(items)}
 
     def playlists(self, uid: str) -> list[dict]:
-        return [{"id": k, "title": v["title"], "subtitle": f"{len(v['tracks'])} Titel", "kind": "playlistContainer",
-                 "container": True, "playable": True, "art": _art(v["title"])} for k, v in self.playlists_.items()]
+        out = []
+        for k, v in self.playlists_.items():
+            arts = list(dict.fromkeys(_art(t["album"]) for t in v["tracks"]))[:4]
+            out.append({"id": k, "title": v["title"], "subtitle": f"{len(v['tracks'])} Titel", "kind": "playlistContainer",
+                        "container": True, "playable": True, "art": arts[0] if arts else None, "arts": arts})
+        return out
+
+    # ------------------------------------------------------------------ Demo-Medien (Songtext, Interpret)
+    def lyrics(self, artist: str, title: str, duration: int = 0) -> dict | None:
+        t = next((x for x in self.tracks if x["title"] == title and x["artist"] == artist), None)
+        if not t:
+            return None
+        h = sum(map(ord, title))
+        lines = [f"[{s // 60:02d}:{s % 60:02d}.00]{LYRICS[(h + i) % len(LYRICS)]}"
+                 for i, s in enumerate(range(6, t["duration"], 5))]
+        return {"synced": "\n".join(lines), "plain": None, "instrumental": False, "source": "Demo"}
+
+    def artist_info(self, name: str) -> dict | None:
+        if name not in ARTISTS:
+            return None
+        albums = ", ".join(al for al, _ in ARTISTS[name])
+        return {"name": name, "description": "Fiktiver Act aus dem Demo-Modus", "image": _art(name + " artist"),
+                "extract": f"{name} gibt es nicht wirklich – der Act zeigt, wie die Bühnen-Ansicht Infos zum Interpreten "
+                           f"darstellt. Im echten Betrieb kommen Bild und Text von Wikipedia. Alben: {albums}.",
+                "url": None, "source": "Demo"}
 
     def delete_playlist(self, uid, playlist_id) -> None:
         self.playlists_.pop(playlist_id)
